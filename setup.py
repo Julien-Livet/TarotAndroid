@@ -7,7 +7,14 @@ setup(
     author="Julien LIVET",
     author_email="julien.livet@free.fr",
     packages=["TarotAndroid"],
+    include_package_data=True
+    package_data={
+        "Tarot": ["images/*.png",
+                  "locales/**/*.mo"],
+    },
+    zip_safe=False,
     install_requires=[
+        "distribute",
         "kivy",
         "pillow",
     ],

@@ -1,7 +1,5 @@
 [app]
 
-debug = 1
-
 # (str) Title of your application
 title = Tarot
 
@@ -14,11 +12,13 @@ package.domain = org.tarot
 # (str) Source code where the main.py live
 source.dir = .
 
+source.include_dirs = images, locales
+
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,mo
+source.include_exts = py, png, jpg, kv, atlas, mo
 
 # (list) List of inclusions using pattern matching
-#source.include_patterns = assets/*,images/*.png
+source.include_patterns = locales/**/*.mo, images/*.png
 
 # (list) Source files to exclude (let empty to not exclude anything)
 #source.exclude_exts = spec
@@ -46,7 +46,7 @@ requirements = python3,kivy,pillow
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
 icon.filename = res/drawable-xxxhdpi/ic_launcher.png
@@ -78,6 +78,7 @@ osx.kivy_version = 1.9.1
 # (bool) Indicate if the application should be fullscreen or not
 fullscreen = 0
 
+android.locales = fr, en
 android.java_sdk = /usr/lib/jvm/java-17-openjdk
 
 # (string) Presplash background color (for android toolchain)

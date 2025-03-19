@@ -9,6 +9,7 @@ import kivy.core.image
 import kivy.core.window
 import kivy.graphics
 import kivy.logger
+import kivy.resources
 import kivy.uix
 import kivy.uix.boxlayout
 import kivy.uix.button
@@ -561,7 +562,7 @@ class Card:
             return self._familyCard.imageName()
 
     def image(self):
-        image = Image.open("images/" + self.imageName() + ".png")
+        image = Image.open(kivy.resources.resource_find("images/" + self.imageName() + ".png"))
 
         image = image.resize(cardSize)
         
@@ -593,7 +594,8 @@ def imageForCards(cards: list, enabledCards: list, shown: bool = True):
     if (shown):
         firstImage = cards[0].image()
     else:
-        firstImage = Image.open("images/back.png")
+        raise ValueError(kivy.resources.resource_find("images/back.png"))
+        firstImage = Image.open(kivy.resources.resource_find("images/back.png"))
         
         firstImage = firstImage.resize(cardSize)
     
@@ -1323,7 +1325,6 @@ class Game:
     def tableImage(self, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False):
         assert(len(showPlayers) == self._playerNumber)
         
-        #Android size: 2125x1012
         tableImage = Image.new('RGBA',
                                (int(kivy.core.window.Window.width * 3 / 4 * globalRatio),
                                 int(kivy.core.window.Window.height / 2 * globalRatio)),
@@ -1382,10 +1383,15 @@ class Game:
         return tableImage
 
 def main():
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+    except locale.Error:
+        pass
+        
     locale_dir = os.path.join(os.path.dirname(__file__), 'locales')
     lang = locale.getlocale()[0]
 
-    lang = gettext.translation('messages', localedir=locale_dir, languages=[lang], fallback=True)
+    lang = gettext.translation('messages', localedir = locale_dir, languages = [lang], fallback = True)
     lang.install()
 
     app = App()
