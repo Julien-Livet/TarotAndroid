@@ -6,6 +6,7 @@ import kivy.app
 import kivy.clock
 import kivy.core
 import kivy.core.image
+import kivy.core.window
 import kivy.graphics
 import kivy.logger
 import kivy.uix
@@ -25,7 +26,7 @@ import time
 import threading
 
 overCardRatio = 1 / 3
-globalRatio = 1.2
+globalRatio = 1
 
 assert(0 < overCardRatio and overCardRatio <= 1)
 
@@ -179,7 +180,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         okButton = kivy.uix.button.Button(text = _("OK"))
         okButton.bind(on_press = self.ok)
 
-        self._rightLayout = kivy.uix.boxlayout.BoxLayout(orientation = "vertical", size_hint_x = None, width = 150, spacing = 0)
+        self._rightLayout = kivy.uix.boxlayout.BoxLayout(orientation = "vertical", size_hint_x = None, width = kivy.core.window.Window.width / 4, spacing = 0)
         self._rightLayout.add_widget(self._contractLabel)
         self._rightLayout.add_widget(self._contractComboBox)
         self._rightLayout.add_widget(self._kingLabel)
@@ -1322,7 +1323,11 @@ class Game:
     def tableImage(self, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False):
         assert(len(showPlayers) == self._playerNumber)
         
-        tableImage = Image.new('RGBA', (int(500 * globalRatio), int(275 * globalRatio)), color=(139, 69, 19))
+        #Android size: 2125x1012
+        tableImage = Image.new('RGBA',
+                               (int(kivy.core.window.Window.width * 3 / 4 * globalRatio),
+                                int(kivy.core.window.Window.height / 2 * globalRatio)),
+                               color=(139, 69, 19))
         
         centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
         #(381, 87)
