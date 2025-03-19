@@ -1,0 +1,191 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: xxx\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-07-06 12:31-0500\n"
+"PO-Revision-Date: 2011-05-27 22:37+0100\n"
+"Last-Translator: My NAME<me@mydomain.com>\n"
+"Language-Team: TEAM <team@TTEAM.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Pass"
+msgstr "Passe"
+
+msgid "\nCalled king: "
+msgstr "\nRoi appelé : "
+
+msgid "\nContract: "
+msgstr "\nContrat : "
+
+msgid "Game over"
+msgstr "Fin du jeu"
+
+msgid "Nobody takes!"
+msgstr "Personne n'a pris !"
+
+msgid "Attack points: {0} - Defence points: {1}"
+msgstr "Points d'attaque : {0} - Points de défense : {1}"
+
+msgid "Attack wins ({0} points for {1} points)!"
+msgstr "L'attaque a gagné ({0} points pour {1} points) !"
+
+msgid "Attack loses ({0} points for {1} points)!"
+msgstr "L'attaque a perdu ({0} points pour {1} points) !"
+
+msgid "Fool"
+msgstr "Excuse"
+
+msgid "Little"
+msgstr "Petite"
+
+msgid "Guard"
+msgstr "Garde"
+
+msgid "Guard without"
+msgstr "Garde sans"
+
+msgid "Guard against"
+msgstr "Garde contre"
+
+msgid "Heart"
+msgstr "Cœur"
+
+msgid "Diamond"
+msgstr "Carreau"
+
+msgid "Club"
+msgstr "Trèfle"
+
+msgid "Spade"
+msgstr "Pique"
+
+msgid "Jack"
+msgstr "Valet"
+
+msgid "Knight"
+msgstr "Cavalier"
+
+msgid "Queen"
+msgstr "Reine"
+
+msgid "King"
+msgstr "Roi"
+
+msgid "Heart jack"
+msgstr "Valet de cœur"
+
+msgid "Diamond jack"
+msgstr "Valet de carreau"
+
+msgid "Club jack"
+msgstr "Valet de trèfle"
+
+msgid "Spade jack"
+msgstr "Valet de pique"
+
+msgid "Heart knight"
+msgstr "Cavalier de cœur"
+
+msgid "Diamond knight"
+msgstr "Cavalier de carreau"
+
+msgid "Club knight"
+msgstr "Cavalier de trèfle"
+
+msgid "Spade knight"
+msgstr "Cavalier de pique"
+
+msgid "Heart queen"
+msgstr "Reine de cœur"
+
+msgid "Diamond queen"
+msgstr "Reine de carreau"
+
+msgid "Club queen"
+msgstr "Reine de trèfle"
+
+msgid "Spade queen"
+msgstr "Reine de pique"
+
+msgid "Heart king"
+msgstr "Roi de cœur"
+
+msgid "Diamond king"
+msgstr "Roi de carreau"
+
+msgid "Club king"
+msgstr "Roi de trèfle"
+
+msgid "Spade king"
+msgstr "Roi de pique"
+
+msgid "Asset {0}"
+msgstr "{0} d'atout"
+
+msgid "Heart {0}"
+msgstr "{0} de cœur"
+
+msgid "Diamond {0}"
+msgstr "{0} de carreau"
+
+msgid "Club {0}"
+msgstr "{0} de trèfle"
+
+msgid "Spade {0}"
+msgstr "{0} de pique"
+
+msgid "Ace of hearts"
+msgstr "As de cœur"
+
+msgid "Ace of diamonds"
+msgstr "As de carreau"
+
+msgid "Ace of clubs"
+msgstr "As de trèfle"
+
+msgid "Ace of spade"
+msgstr "As de pique"
+
+msgid "Three players"
+msgstr "Trois joueurs"
+
+msgid "Four players"
+msgstr "Quatre joueurs"
+
+msgid "Five players"
+msgstr "Cinq joueurs"
+
+msgid "Tarot"
+msgstr "Tarot"
+
+msgid "Attack points: 0 - Defence points: 0"
+msgstr "Points d'attaque : 0 - Points de défense : 0"
+
+msgid "Choose a contract"
+msgstr "Choisir un contrat"
+
+msgid "Call a king"
+msgstr "Appeler un roi"
+
+msgid "Do a dog"
+msgstr "Faire un chien"
+
+msgid "Play a card"
+msgstr "Jouer une carte"
+
+msgid "OK"
+msgstr "OK"
+
+msgid " ({0} points)"
+msgstr " ({0} points)"
+
+msgid "Choose a game"
+msgstr "Choisir un jeu"
+
+msgid "Attack"
+msgstr "Attaque"
+
+msgid "Defence"
+msgstr "Défense"
