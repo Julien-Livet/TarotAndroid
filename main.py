@@ -40,6 +40,7 @@ class TableLabel(kivy.uix.image.Image):
         self.setImage(image)
         self._mousePressPos = None
         self._pressed = False
+        self.img = None
     
     def setImage(self, image: Image):
         self._image = image
@@ -54,9 +55,15 @@ class TableLabel(kivy.uix.image.Image):
             self.size_hint = (None, None)
 
     def imageWidth(self):
+        if (not self.img):
+            return 0
+            
         return self.img.texture.size[0]
 
     def imageHeight(self):
+        if (not self.img):
+            return 0
+            
         return self.img.texture.size[1]
 
     def on_touch_up(self, touch):
@@ -1165,7 +1172,7 @@ class Player:
                     else: #elif (c.isAsset()):
                         index = -1
                         
-                        if (choices[index].name() == "asset-1"):
+                        if (choices[index] == "asset-1"):
                             index -= 1
                         
                         try:
@@ -1633,7 +1640,70 @@ class Game:
             image.paste(img, ((tableImage.width - img.width) // 2, tableImage.height - img.height))
             tableImage = Image.alpha_composite(tableImage, image)
         
+        center = (tableImage.width - 100, 100)
+        radius = 50
+        
+        positions = [(center[0], center[1] + radius)]
+        angles = [0]
+        
+        for i in range(1, self._playerNumber):
+            angles.append(angles[-1] - 360 / self._playerNumber)
+            x = center[0] + radius * math.sin(math.radians(angles[-1]))
+            y = center[1] + radius * math.cos(math.radians(angles[-1]))
+            positions.append((x, y))
+        
+        draw = ImageDraw.Draw(tableImage)
+        
+        font = ImageFont.truetype("DejaVuSans.ttf", 20)
+            
+        for i in range(0, self._playerNumber):
+            text = "?"
+            
+            if (self._players[i].teamKnown()):
+                text = "A" if self._players[i].attackTeam() else "D"
+        
+            text += " - " + str(i)
+            
+            bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
+            w = bbox[2] - bbox[0]
+            h = int(1.5 * (bbox[3] - bbox[1]))
+            textImage = Image.new('RGBA', (w, h))
+            draw = ImageDraw.Draw(textImage)
+            draw.text((0, 0), text, font = font, fill = "black")
+            
+            if (i == self._currentPlayer):
+                draw.line((0, 0.95 * h, w, 0.95 * h), fill = "black", width = 2)
+
+            textImage = textImage.resize((int(textImage.width * globalRatio),
+                                          int(textImage.height * globalRatio)))
+            
+            img = Image.new('RGBA', (tableImage.width, tableImage.height))
+            img.paste(textImage, (int(positions[i][0]), int(positions[i][1])))
+            tableImage = Image.alpha_composite(tableImage, img)
+        
         return tableImage
+
+    def playedCards(self):
+        assets = []
+        families = {Family.Heart: [],
+                    Family.Diamond: [],
+                    Family.Club: [],
+                    Family.Spade: []}
+
+        folds = self.attackFolds() + self.defenceFolds()
+                    
+        for c in folds:
+            if c.isAsset():
+                assets.append(c)
+            else: #elif c.isFamilyCard():
+                families[c.familyCard().family()].append(c)
+        
+        assets = sorted(assets, key = lambda x: x.value())
+        
+        for k, v in families.items():
+            families[k] = sorted(families[k], key = lambda x: x.value())
+        
+        return (assets, families)
 
 def main():
     try:
