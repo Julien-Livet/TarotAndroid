@@ -237,7 +237,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self._pointsLabel.text = _("Attack points: {0} - Defence points: {1}").format(self._game.attackPoints(), self._game.defencePoints()) + take
                                   
         if (self._tableLabel._mousePressPos):
-            if (self._game._currentPlayer and self._game._players[self._game._currentPlayer]._isHuman):
+            if (self._game._currentPlayer != None and self._game._players[self._game._currentPlayer]._isHuman):
                 n = len(self._game._players[self._game._currentPlayer]._cards)
                 w = (n - 1) * cardSize[0] * overCardRatio + cardSize[0]
 
