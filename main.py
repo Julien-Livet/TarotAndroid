@@ -1748,11 +1748,14 @@ class Game:
                                color=(139, 69, 19))
         
         centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
-        #(381, 87)
+        )
         if (centerCardsImage):
             tableImage.paste(centerCardsImage, ((tableImage.width - centerCardsImage.width) // 2,
                                                 0))
-                                                
+        
+        if (self._currentPlayer == None):
+            return tableImage
+                              
         text = "?"
         
         if (self._players[self._currentPlayer].teamKnown()):
