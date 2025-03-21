@@ -695,7 +695,8 @@ class Player:
         if (contract):
             possibleContracts = [i for i in range(int(contract) + 1, 4)]
         else:
-            possibleContracts = [i for i in range(-1, 4)]
+            possibleContracts = [-1]
+            possibleContracts += [i for i in range(-1, 4)]
             
         if (len(possibleContracts) == 0):
             return None
@@ -727,9 +728,56 @@ class Player:
             else:
                 return Contract(contract)
         else:
-            #TODO: ...
+            guessContract = None
+        
+            oudlerCount = countOudlersForCards(self._cards)
             
-            return None
+            assets = []
+            families = {Family.Heart: [],
+                        Family.Club: [],
+                        Family.Diamond: [],
+                        Family.Spade: []}
+            for card in self._cards:
+                if card.isAsset():
+                    assets.append(card)
+                else: #elif card.isFamilyCard():
+                    families[card.familyCard().family()].append(card)
+            assets = sorted(assets, key = lambda x: x.value())
+            for k, v in families.items():
+                families[k] = sorted(families[k], key = lambda x: x.value())
+            
+            points = 0
+            
+            for card in self._cards:
+                points += card.points()
+            
+            if (oudlerCount == 0):
+                guessContract = None
+            elif (oudlerCount == 1):
+                if (len(assets) >= 22 // 3):
+                    guessContract = Contract.Guard
+                else:
+                    guessContract = Contract.Little
+            else:
+                cutCount = 0
+                
+                for k, v in families.items():
+                    if (len(families[k]) == 0):
+                        cutCount += 1
+
+                if (cutCount == 0):
+                    guessContract = Contract.Guard
+                else:
+                    if (points >= self._game.maximumPoints() // self._game._playerNumber):
+                        guessContract = Contract.GuardAgainst
+                    else:
+                        guessContract = Contract.GuardWithout
+            
+            if (not guessContract
+                or (contract and guessContract.value <= contract.value)):
+                return None
+            
+            return guessContract
     
     def callKing(self, window: Window) -> Family:
         strFamilies = {}
@@ -749,16 +797,45 @@ class Player:
             while (not window._ok):
                 time.sleep(0.01)
             
-            calledKing = {v: k for k, v in strFamilies.items()}.get(window._kingComboBox.text)
+            calledKing = Family({v: k for k, v in strFamilies.items()}.get(window._kingComboBox.text))
             
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingLabel, 0))
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingComboBox, 0))
         else:
-            #TODO: ...
+            families = {Family.Heart: [],
+                        Family.Club: [],
+                        Family.Diamond: [],
+                        Family.Spade: []}
+            familyPoints = {Family.Heart: 0,
+                            Family.Club: 0,
+                            Family.Diamond: 0,
+                            Family.Spade: 0}
+            kings = {Family.Heart: False,
+                     Family.Club: False,
+                     Family.Diamond: False,
+                     Family.Spade: False}
+            for card in self._cards:
+                if card.isFamilyCard():
+                    families[card.familyCard().family()].append(card)
+                    familyPoints[card.familyCard().family()] += card.points()
+                    
+                    if (card.value() == 14):
+                        kings[card.familyCard().family()] = True
+            for k, v in families.items():
+                families[k] = sorted(families[k], key = lambda x: x.value())
             
-            pass
+            familyPoints = dict(sorted(familyPoints.items(), key = lambda item: item[1], reverse = True))
+            kings = dict(sorted(kings.items(), key = lambda item: item[1]))
+                
+            for k, v in familyPoints.items():
+                if (len(families[k]) and families[k][-1].value() != 14):
+                    calledKing = k
+                    break
+            
+            if (not calledKing):
+                calledKing = list(kings.items())[0][0]
 
-        return Family(calledKing)
+        return calledKing
     
     def doDog(self, dog: list, window: Window) -> list:
         newDog = []
@@ -823,8 +900,8 @@ class Player:
                 del self._cards[j]
         else:
             #TODO: ...
-
-            pass
+            
+            newDog = dog
         
         assert(len(newDog) == len(dog))
         
@@ -1010,7 +1087,7 @@ class Player:
                                 if (len(playedFamilies[k])):
                                     bestCard = len(playedFamilies[k]).value()
                                     
-                                if (len(families) and families[k][-1] >= bestCard - 1):
+                                if (len(families[k]) and families[k][-1] >= bestCard - 1):
                                     cut = False
                                     
                                     for i in range(0, self._game._playerNumber):
@@ -1415,6 +1492,24 @@ class Game:
                 self._players[defencePlayer]._folds.append(givenCard)
             else:
                 self._players[attackPlayer]._folds.append(givenCard)
+
+    def maximumPoints(self):
+        carfs = []
+    
+        for i in range(0, 4):
+            for j in range(1, 11):
+                cards.append(Card(familyCard = FamilyCard(family = Family(i), value = j)))
+            for j in range(0, 4):
+                cards.append(Card(familyCard = FamilyCard(family = Family(i), head = Head(j))))
+        for i in range(0, 22):
+            cards.append(Card(asset = Asset(i)))
+            
+        points = 0
+        
+        for card in cards:
+            points += card.points()
+            
+        return points
 
     def giveHands(self):
         self._foolPlayed = None
