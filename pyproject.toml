@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ['tarot']
+
+[project]
+name = "Tarot"
+version = "0.0.1"
+requires-python = ">= 3.10"
+dependencies = []
+
+[project.optional-dependencies]
+gui = [
+    "kivy",
+    ]

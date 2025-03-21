@@ -12,23 +12,23 @@ package.domain = org.tarot
 # (str) Source code where the main.py live
 source.dir = .
 
-source.include_dirs = images, locales
+source.include_dirs = images, locales, fonts
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py, png, jpg, kv, atlas, mo
+source.include_exts = py, png, jpg, kv, atlas, mo, ttf
 
 # (list) List of inclusions using pattern matching
 source.include_patterns = locales/**/*.mo, images/*.png
 
 # (list) Source files to exclude (let empty to not exclude anything)
-#source.exclude_exts = spec
+source.exclude_exts = spec, jar, json, in, MD, apks
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-#source.exclude_dirs = tests, bin, venv
+source.exclude_dirs = tests, bin, my_venv, output
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-#source.exclude_patterns = license,images/*/*.jpg
+source.exclude_patterns = setup.py, pyproject.toml
 
 # (str) Application versioning (method 1)
 version = 0.1
@@ -39,7 +39,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,pillow
+requirements = python3, kivy, pillow
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -76,7 +76,7 @@ osx.kivy_version = 1.9.1
 #
 
 # (bool) Indicate if the application should be fullscreen or not
-fullscreen = 0
+fullscreen = 1
 
 android.locales = fr, en
 android.java_sdk = /usr/lib/jvm/java-17-openjdk

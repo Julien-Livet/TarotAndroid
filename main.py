@@ -31,7 +31,7 @@ globalRatio = 1
 
 assert(0 < overCardRatio and overCardRatio <= 1)
 
-cardSize = (int(56 * globalRatio), int(109 * globalRatio))
+cardSize = (0, 0)
 
 class TableLabel(kivy.uix.image.Image):
     def __init__(self, window, image: Image = None):
@@ -125,7 +125,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self._playerNumber = 5
         self.play()
 
-    def displayTable(self, centerCards: list, displayCenterCards: bool = False, centerCardsIsDog: bool = False, *largs):
+    def displayTable(self, centerCards: list, displayCenterCards: bool, centerCardsIsDog: bool, *largs):
         self._tableLabel.setImage(self._game.tableImage(self._showPlayers, centerCards, displayCenterCards, centerCardsIsDog))
 
     def comboBoxActivated(self, spinner, text):
@@ -135,6 +135,21 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 break
 
     def play(self):
+        global globalRatio
+
+        if (self._playerNumber == 3):
+            globalRatio = 1.0
+        elif (self._playerNumber == 4):
+            globalRatio = 1.2
+        elif (self._playerNumber == 5):
+            globalRatio = 1.5
+        
+        globalRatio = 1.5 * kivy.core.window.Window.width / kivy.core.window.Window.height
+        
+        global cardSize
+            
+        cardSize = (int(56 * globalRatio), int(109 * globalRatio))
+
         self._game = Game(self._playerNumber)
         self._game.giveHands()
         self._game._players[0]._isHuman = True
@@ -260,27 +275,31 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 and self._game.defencePoints() == 0):
                 content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
                 content.add_widget(kivy.uix.label.Label(text = _("Nobody takes!")))
-                popup = kivy.uix.popup.Popup(title = _("Game over"), content = content)
-                popup.open()
+                content.bind(on_touch_down = self.on_popup_ok)
+                self._popup = kivy.uix.popup.Popup(title = _("Game over"), content = content)
+                self._popup.open()
             else:
                 if (self._game.attackWins()):
-                    content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
-                    content.add_widget(kivy.uix.label.Label(text = _("Attack wins ({0} points for {1} points)!")
-                                                                   .format(self._game.attackPoints(),
-                                                                           self._game.attackTargetPoints())))
-                    popup = kivy.uix.popup.Popup(title = _("Game over"),
-                                                 content = content)
-                    popup.open()
+                    self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                    self._content.bind(on_touch_down = self.on_popup_ok)
+                    self._content.add_widget(kivy.uix.label.Label(text = _("Attack wins ({0} points for {1} points)!")
+                                                                           .format(self._game.attackPoints(),
+                                                                                   self._game.attackTargetPoints())))
+                    self._popup = kivy.uix.popup.Popup(title = _("Game over"),
+                                                       content = content)
+                    self._popup.open()
                 else:
                     content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                    content.bind(on_touch_down = self.on_popup_ok)
                     content.add_widget(kivy.uix.label.Label(text = _("Attack loses ({0} points for {1} points)!")
                                                                    .format(self._game.attackPoints(),
                                                                            self._game.attackTargetPoints())))
-                    popup = kivy.uix.popup.Popup(title = _("Game over"),
-                                                 content = content)
-                    popup.open()
+                    self._popup = kivy.uix.popup.Popup(title = _("Game over"),
+                                                       content = content)
+                    self._popup.open()
 
-            self._app.stop()
+    def on_popup_ok(self, instance, touch):
+        self._app.stop()
 
 class App(kivy.app.App):
     def build(self):
@@ -693,10 +712,10 @@ class Player:
         possibleContracts = []
         
         if (contract):
-            possibleContracts = [i for i in range(int(contract) + 1, 4)]
-        else:
             possibleContracts = [-1]
-            possibleContracts += [i for i in range(-1, 4)]
+            possibleContracts += [i for i in range(int(contract) + 1, 4)]
+        else:
+            possibleContracts = [i for i in range(-1, 4)]
             
         if (len(possibleContracts) == 0):
             return None
@@ -901,6 +920,7 @@ class Player:
         else:
             #TODO: ...
             
+            self._cards = self._cards[0:len(self._cards) - len(dog)]
             newDog = dog
         
         assert(len(newDog) == len(dog))
@@ -1020,7 +1040,7 @@ class Player:
                 strCards[i] = self._cards[i].name()
                 choices.append(self._cards[i].name())
 
-        kivy.clock.Clock.schedule_once(partial(window.displayTable, cardList, True))
+        kivy.clock.Clock.schedule_once(partial(window.displayTable, cardList, True, False))
 
         if (self._isHuman):
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardLabel, 1))
@@ -1085,7 +1105,7 @@ class Player:
                                 bestCard = 15
                                 
                                 if (len(playedFamilies[k])):
-                                    bestCard = len(playedFamilies[k]).value()
+                                    bestCard = len(playedFamilies[k][-1]).value()
                                     
                                 if (len(families[k]) and families[k][-1] >= bestCard - 1):
                                     cut = False
@@ -1392,12 +1412,12 @@ class Game:
                         self._players[p]._attackTeam = False
                         self._players[p]._teamKnown = True
 
-                kivy.clock.Clock.schedule_once(partial(window.displayTable, [v for k, v in cards.items()], True))
+                kivy.clock.Clock.schedule_once(partial(window.displayTable, [v for k, v in cards.items()], True, False))
                 time.sleep(1)
             
             self._firstPlayer = self.playSet(cards, i == n - 1)
 
-        kivy.clock.Clock.schedule_once(partial(window.displayTable, self._dog, True))
+        kivy.clock.Clock.schedule_once(partial(window.displayTable, self._dog, True, False))
         time.sleep(1)
 
         if (self._contract == Contract.GuardWithout):
@@ -1410,7 +1430,7 @@ class Game:
 
         self._dog = []
         
-        kivy.clock.Clock.schedule_once(partial(window.displayTable, []))
+        kivy.clock.Clock.schedule_once(partial(window.displayTable, [], False, False))
         
         self._currentPlayer = None
 
@@ -1494,7 +1514,7 @@ class Game:
                 self._players[attackPlayer]._folds.append(givenCard)
 
     def maximumPoints(self):
-        carfs = []
+        cards = []
     
         for i in range(0, 4):
             for j in range(1, 11):
@@ -1681,8 +1701,8 @@ class Game:
         assert(len(showPlayers) == self._playerNumber)
         
         tableImage = Image.new('RGBA',
-                               (int(kivy.core.window.Window.width * 3 / 4 * globalRatio),
-                                int(kivy.core.window.Window.height / 2 * globalRatio)),
+                               (int(kivy.core.window.Window.width * 3 / 4),
+                                int(kivy.core.window.Window.height * 8 / 10)),
                                color=(139, 69, 19))
         
         centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
@@ -1698,7 +1718,7 @@ class Game:
     
         draw = ImageDraw.Draw(tableImage)
     
-        font = ImageFont.truetype("DejaVuSans.ttf", 20)
+        font = ImageFont.truetype("fonts/DejaVuSans.ttf", 20)
         bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
         w = bbox[2] - bbox[0]
         h = int(1.5 * (bbox[3] - bbox[1]))
@@ -1735,8 +1755,8 @@ class Game:
             image.paste(img, ((tableImage.width - img.width) // 2, tableImage.height - img.height))
             tableImage = Image.alpha_composite(tableImage, image)
         
-        center = (tableImage.width - 100, 100)
-        radius = 50
+        center = (tableImage.width - 100 * globalRatio, 50 * globalRatio)
+        radius = 50 * globalRatio
         
         positions = [(center[0], center[1] + radius)]
         angles = [0]
@@ -1749,7 +1769,7 @@ class Game:
         
         draw = ImageDraw.Draw(tableImage)
         
-        font = ImageFont.truetype("DejaVuSans.ttf", 20)
+        font = ImageFont.truetype("fonts/DejaVuSans.ttf", 20)
             
         for i in range(0, self._playerNumber):
             text = "?"
