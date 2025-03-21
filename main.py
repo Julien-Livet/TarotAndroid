@@ -1821,13 +1821,13 @@ class Game:
         return (assets, families)
 
 def main():
-    try:
-        locale.setlocale(locale.LC_ALL, '')
-    except locale.Error:
-        pass
-        
     locale_dir = os.path.join(os.path.dirname(__file__), 'locales')
     lang = locale.getlocale()[0]
+    
+    from jnius import autoclass
+    Locale = autoclass('java.util.Locale')
+    loc = Locale.getDefault()
+    lang = loc.getLanguage() + "_" + loc.getCountry()
 
     lang = gettext.translation('messages', localedir = locale_dir, languages = [lang], fallback = True)
     lang.install()
