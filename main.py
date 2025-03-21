@@ -1274,6 +1274,7 @@ class Player:
                         
                         try:
                             selectedCard = choices[index]
+                            selectedCard = index
                         except:
                             pass
 
@@ -1334,7 +1335,7 @@ class Game:
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
             kivy.clock.Clock.schedule_once(partial(window.displayTable, self._dog, True, True))
-            time.sleep(1)
+            time.sleep(2)
 
             kingInDog = False
 
