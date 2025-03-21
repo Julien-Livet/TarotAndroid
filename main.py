@@ -265,7 +265,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                                 self._tableLabel._mousePressPos = None
                                 self._dogComboBoxes[self._dogIndex].text = self._game._players[self._game._currentPlayer]._cards[j].name()
                                 self._dogIndex += 1
-                                if (not self._dogComboBoxes[self._dogIndex].opacity == 1):
+                                if (self._dogIndex >= 6 or not self._dogComboBoxes[self._dogIndex].opacity == 1):
                                     self._dogIndex = 0
                         
                         break
