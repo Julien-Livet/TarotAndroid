@@ -1748,7 +1748,7 @@ class Game:
                                color=(139, 69, 19))
         
         centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
-        )
+
         if (centerCardsImage):
             tableImage.paste(centerCardsImage, ((tableImage.width - centerCardsImage.width) // 2,
                                                 0))
