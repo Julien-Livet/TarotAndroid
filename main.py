@@ -1334,7 +1334,7 @@ class Player:
                         except:
                             pass
 
-            if (selectedCard == len(choices) - 1):
+            if (selectedCard == -1 or selectedCard == len(choices) - 1):
                 points = 10
                 
                 for card in reversed(self._cards):
