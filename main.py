@@ -1327,7 +1327,7 @@ class Player:
             if (selectedCard == len(choices) - 1):
                 points = 10
                 
-                for card in self._cards:
+                for card in reversed(self._cards):
                     if (card.name() in choices):
                         if (card.points() < points):
                             selectedCard = choices.index(card.name())
