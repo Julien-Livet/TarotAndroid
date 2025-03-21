@@ -9,7 +9,8 @@ setup(
     packages=["TarotAndroid"],
     include_package_data=True
     package_data={
-        "Tarot": ["images/*.png",
+        "Tarot": ["fonts/*.ttf",
+                  "images/*.png",
                   "locales/**/*.mo"],
     },
     zip_safe=False,

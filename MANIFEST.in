@@ -1,2 +1,3 @@
+include fonts/*.ttf
 include images/*.png
 include locales/**/*.mo
