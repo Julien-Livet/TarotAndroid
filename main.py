@@ -105,6 +105,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
 
     def setOpacity(self, widget, opacity, *largs):
         widget.opacity = opacity
+        widget.disabled = (opacity == 0)
 
     def setSpinnerValues(self, spinner, values, *largs):
         spinner.values = values
@@ -164,8 +165,10 @@ class Window(kivy.uix.boxlayout.BoxLayout):
 
         self._contractLabel = kivy.uix.label.Label(text = _("Choose a contract"), halign = 'center', valign = 'middle')
         self._contractLabel.opacity = 0
+        self._contractLabel.disabled = True
         self._contractComboBox = kivy.uix.spinner.Spinner()
         self._contractComboBox.opacity = 0
+        self._contractComboBox.disabled = True
 
         choices = []
 
@@ -174,21 +177,27 @@ class Window(kivy.uix.boxlayout.BoxLayout):
 
         self._kingLabel = kivy.uix.label.Label(text = _("Call a king"), halign = 'center', valign = 'middle')
         self._kingLabel.opacity = 0
+        self._kingLabel.disabled = True
         self._kingComboBox = kivy.uix.spinner.Spinner(text = choices[0], values = choices)
         self._kingComboBox.opacity = 0
+        self._kingComboBox.disabled = True
 
         self._dogLabel = kivy.uix.label.Label(text = _("Do a dog"), halign = 'center', valign = 'middle')
         self._dogLabel.opacity = 0
+        self._dogLabel.disabled = True
         self._dogComboBoxes = []
         for i in range(0, 6):
             self._dogComboBoxes.append(kivy.uix.spinner.Spinner())
             self._dogComboBoxes[-1].opacity = 0
+            self._dogComboBoxes[-1].disabled = True
             self._dogComboBoxes[-1].bind(on_text = self.comboBoxActivated)
 
         self._cardLabel = kivy.uix.label.Label(text = _("Play a card"), halign = 'center', valign = 'middle')
         self._cardLabel.opacity = 0
+        self._cardLabel.disabled = True
         self._cardComboBox = kivy.uix.spinner.Spinner()
         self._cardComboBox.opacity = 0
+        self._cardComboBox.disabled = True
 
         okButton = kivy.uix.button.Button(text = _("OK"))
         okButton.bind(on_press = self.ok)
