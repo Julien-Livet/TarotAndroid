@@ -273,10 +273,10 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         if (not self._thread.is_alive()):
             if (self._game.attackPoints() == 0
                 and self._game.defencePoints() == 0):
-                self.content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
-                self.content.add_widget(kivy.uix.label.Label(text = _("Nobody takes!")))
-                self.content.bind(on_touch_down = self.on_popup_ok)
-                self._popup = kivy.uix.popup.Popup(title = _("Game over"), content = self.content)
+                self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                self._content.add_widget(kivy.uix.label.Label(text = _("Nobody takes!")))
+                self._content.bind(on_touch_down = self.on_popup_ok)
+                self._popup = kivy.uix.popup.Popup(title = _("Game over"), content = self._content)
                 self._popup.open()
             else:
                 if (self._game.attackWins()):
@@ -286,16 +286,16 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                                                                            .format(self._game.attackPoints(),
                                                                                    self._game.attackTargetPoints())))
                     self._popup = kivy.uix.popup.Popup(title = _("Game over"),
-                                                       content = self.content)
+                                                       content = self._content)
                     self._popup.open()
                 else:
-                    content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
-                    content.bind(on_touch_down = self.on_popup_ok)
-                    content.add_widget(kivy.uix.label.Label(text = _("Attack loses ({0} points for {1} points)!")
-                                                                   .format(self._game.attackPoints(),
-                                                                           self._game.attackTargetPoints())))
+                    self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                    self._content.bind(on_touch_down = self.on_popup_ok)
+                    self._content.add_widget(kivy.uix.label.Label(text = _("Attack loses ({0} points for {1} points)!")
+                                                                           .format(self._game.attackPoints(),
+                                                                                   self._game.attackTargetPoints())))
                     self._popup = kivy.uix.popup.Popup(title = _("Game over"),
-                                                       content = content)
+                                                       content = self._content)
                     self._popup.open()
 
     def on_popup_ok(self, instance, touch):
