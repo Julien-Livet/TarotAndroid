@@ -28,11 +28,11 @@ msgstr "Personne n'a pris !"
 msgid "Attack points: {0} - Defence points: {1}"
 msgstr "Points d'attaque : {0} - Points de défense : {1}"
 
-msgid "Attack wins ({0} points for {1} points)!"
-msgstr "L'attaque a gagné ({0} points pour {1} points) !"
+msgid " Attack wins ({0} points for {1} points)!"
+msgstr " L'attaque a gagné ({0} points pour {1} points) !"
 
-msgid "Attack loses ({0} points for {1} points)!"
-msgstr "L'attaque a perdu ({0} points pour {1} points) !"
+msgid " Attack loses ({0} points for {1} points)!"
+msgstr " L'attaque a perdu ({0} points pour {1} points) !"
 
 msgid "Fool"
 msgstr "Excuse"
@@ -189,3 +189,9 @@ msgstr "Attaque"
 
 msgid "Defence"
 msgstr "Défense"
+
+msgid "Well done!"
+msgstr "Bravo !"
+
+msgid "Shame!"
+msgstr "Dommage !"

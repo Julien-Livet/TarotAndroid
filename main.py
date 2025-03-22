@@ -291,7 +291,8 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 if (self._game.attackWins()):
                     self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
                     self._content.bind(on_touch_down = self.on_popup_ok)
-                    self._content.add_widget(kivy.uix.label.Label(text = _("Attack wins ({0} points for {1} points)!")
+                    self._content.add_widget(kivy.uix.label.Label(text = _("Well done!") if self._game._players[0].attackTeam() else _("Shame!")
+                                                                         + _(" Attack wins ({0} points for {1} points)!")
                                                                            .format(self._game.attackPoints(),
                                                                                    self._game.attackTargetPoints())))
                     self._popup = kivy.uix.popup.Popup(title = _("Game over"),
@@ -300,7 +301,8 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 else:
                     self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
                     self._content.bind(on_touch_down = self.on_popup_ok)
-                    self._content.add_widget(kivy.uix.label.Label(text = _("Attack loses ({0} points for {1} points)!")
+                    self._content.add_widget(kivy.uix.label.Label(text = _("Well done!") if self._game._players[0].defenceTeam() else _("Shame!")
+                                                                         + _(" Attack loses ({0} points for {1} points)!")
                                                                            .format(self._game.attackPoints(),
                                                                                    self._game.attackTargetPoints())))
                     self._popup = kivy.uix.popup.Popup(title = _("Game over"),
@@ -1115,7 +1117,7 @@ class Player:
             if (p == None):
                 if (self._attackTeam):
                     if (self._game._taker == self._id):
-                        if (len(handAssets)):
+                        if (len(handAssets) and len(handAssets) >= 22 // self._game._playerNumber):
                             assetIndex = len(handAssets) - 1
                             
                             if (handAssets[assetIndex].value() == 0):
