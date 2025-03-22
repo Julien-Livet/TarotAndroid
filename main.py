@@ -291,7 +291,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 if (self._game.attackWins()):
                     self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
                     self._content.bind(on_touch_down = self.on_popup_ok)
-                    self._content.add_widget(kivy.uix.label.Label(text = _("Well done!") if self._game._players[0].attackTeam() else _("Shame!")
+                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if self._game._players[0].attackTeam() else _("Shame!"))
                                                                          + _(" Attack wins ({0} points for {1} points)!")
                                                                            .format(self._game.attackPoints(),
                                                                                    self._game.attackTargetPoints())))
@@ -301,7 +301,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 else:
                     self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
                     self._content.bind(on_touch_down = self.on_popup_ok)
-                    self._content.add_widget(kivy.uix.label.Label(text = _("Well done!") if self._game._players[0].defenceTeam() else _("Shame!")
+                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if self._game._players[0].defenceTeam() else _("Shame!"))
                                                                          + _(" Attack loses ({0} points for {1} points)!")
                                                                            .format(self._game.attackPoints(),
                                                                                    self._game.attackTargetPoints())))
