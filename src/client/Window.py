@@ -1,0 +1,411 @@
+from common import Family
+from common import TableLabel
+from common import common
+from client import Client
+import io
+import kivy.graphics.texture
+import kivy.uix
+import kivy.uix.image
+import math
+import os
+from PIL import Image
+import plyer
+import random
+from server import Server
+import struct
+import threading
+
+iniFilename = os.path.dirname(__file__) + "/../../Tarot.ini"
+
+class TableLabel(kivy.uix.image.Image):
+    def __init__(self, window, image: Image = None):
+        super().__init__()
+        self._window = window
+        self.setImage(image)
+        self._mousePressPos = None
+        self._pressed = False
+        self.img = None
+    
+    def setImage(self, image: Image):
+        self._image = image
+        
+        if (image):
+            self.img_byte_arr = io.BytesIO()
+            image.save(self.img_byte_arr, format='PNG')
+            self.img_byte_arr.seek(0)
+            self.img = kivy.core.image.Image(self.img_byte_arr, ext="png")
+            self.texture = self.img.texture
+            self.size = self.img.texture.size
+            self.size_hint = (None, None)
+
+    def imageWidth(self):
+        if (not self.img):
+            return 0
+            
+        return self.img.texture.size[0]
+
+    def imageHeight(self):
+        if (not self.img):
+            return 0
+            
+        return self.img.texture.size[1]
+
+    def on_touch_up(self, touch):
+        super().on_touch_up(touch)
+        if (not self._pressed):
+            p = self.to_window(touch.x, touch.y)
+            self._mousePressPos = [p[0], self._window.height - p[1]]
+        else:
+            self._mousePressPos = None
+
+    def on_touch_down(self, touch):
+        super().on_touch_down(touch)
+        self._mousePressPos = None
+        self._pressed = False
+
+class Window(kivy.uix.boxlayout.BoxLayout):
+    def __init__(self, app: kivy.app.App):
+        super().__init__(orientation = "horizontal", spacing = 0)
+        self._playerNumber = 5
+        self._window = None
+        self._dialog = None
+        self._ok = False
+        self._app = app
+        self._playerNumber = 5
+        self._window = None
+        self._dialog = None
+        self._ok = False
+        self._globalRatio = 0.8
+        self._cardSize = (0, 0)
+        self._overCardRatio = 1 / 3
+        self._client = None
+        self._avatarFilename = os.path.dirname(__file__) + "/../../images/avatar.png"
+        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
+        self._init = False
+        self._localServer = None
+        self._localClients = []
+        self._timer = None
+
+        assert(0 < self._overCardRatio and self._overCardRatio <= 1)
+
+        layout = kivy.uix.boxlayout.BoxLayout(orientation = "vertical")
+
+        self._lineEdit = kivy.uix.textinput.TextInput(max_text_length = 8, multiline = False)
+        self._avatarButton = kivy.uix.button.Button()
+        self._avatarButton.bind(on_press = self.chooseAvatar)
+        self._avatar = None
+        
+        threeButton = kivy.uix.button.Button(text = _("Three players"))
+        threeButton.bind(on_press = self.threePlayers)
+        fourButton = kivy.uix.button.Button(text = _("Four players"))
+        fourButton.bind(on_press = self.fourPlayers)
+        fiveButton = kivy.uix.button.Button(text = _("Five players"))
+        fiveButton.bind(on_press = self.fivePlayers)
+
+        self._localRadioButton = kivy.uix.RadioButton(text = _("Local"), group = "group")
+        self._onlineRadioButton = kivy.uix.RadioButton(text = _("Online"), group = "group")
+        self._localRadioButton.active = True
+
+        if (os.path.exists(iniFilename)):
+            lines = []
+            
+            with open(iniFilename, 'r') as file:
+                lines = file.read().split("\n")
+                
+            name = lines[0]
+            avatarFilename = lines[1]
+            local = lines[2]
+            self._lineEdit.text = name
+            
+            if (avatarFilename):
+                self._avatarFilename = avatarFilename
+
+                self._avatar = Image.open(avatarFilename)
+
+                image = self._avatar.convert('RGBA')
+                image = image.resize((32, 32))
+                self._texture = Texture.create(size = image.size, colorfmt = 'rgba')
+                self._texture.blit_buffer(pimage.tobytes(), colorfmt = 'rgba', bufferfmt = 'ubyte')
+                self._avatarButton.rect = kivy.graphics.texture.Texture(size = (image.width, image.height))
+                self._avatarButton.rect.texture = self._texture
+                
+            self._localRadioButton.active = (local == "True")
+            self._onlineRadioButton.active = (local == "False")
+
+        horizontalLayout = kivy.uix.boxlayout.BoxLayout(orientation = "horizontal")
+
+        horizontalLayout.add_widget(self._lineEdit)
+        horizontalLayout.add_widget(self._avatarButton)
+
+        layout.add_widget(horizontalLayout)
+        layout.add_widget(threeButton)
+        layout.add_widget(fourButton)
+        layout.add_widget(fiveButton)
+        layout.add_widget(self._localRadioButton)
+        layout.add_widget(self._onlineRadioButton)
+
+        self.add_widget(layout)
+
+    def __del__(self):
+        if (self._localServer):
+            self._localServer.disconnect()
+            
+        for client in self._localClients:
+            client.disconnect()
+
+        if (self._client):
+            self._client.disconnect()
+
+    def setOpacity(self, widget, opacity, *largs):
+        widget.opacity = opacity
+        widget.disabled = (opacity == 0)
+
+    def setSpinnerValues(self, spinner, values, *largs):
+        spinner.values = values
+        spinner.text = values[0]
+
+    def removeSpinnerValues(self, spinner, *largs):
+        self._rightLayout.remove_widget(spinner)
+
+    def threePlayers(self, instance):
+        self._playerNumber = 3
+        self.play()
+
+    def fourPlayers(self, instance):
+        self._playerNumber = 4
+        self.play()
+
+    def fivePlayers(self, instance):
+        self._playerNumber = 5
+        self.play()
+
+    def displayTable(self, centerCards: list, displayCenterCards: bool, centerCardsIsDog: bool, *largs):
+        if (not self._client or not self._client._id):
+            return
+
+        self._tableLabel.setImage(self._game.tableImage(self._showPlayers, centerCards, displayCenterCards, centerCardsIsDog))
+
+    def comboBoxActivated(self, spinner, text):
+        for i in range(0, 6):
+            if (self._dogComboBoxes[i] == spinner):
+                self._dogIndex = i
+                break
+
+    def chooseAvatar(self):
+        plyer.filechooser.open_file(on_selection = self.on_file_select)
+
+    def on_file_select(self, selection):
+        if (selection):
+            self._avatarFilename = selection[0]
+            self._avatar = Image.open(self._avatarFilename).resize(64, 64)
+
+            image = self._avatar.convert('RGBA')
+            image = image.resize((32, 32))
+            self._texture = Texture.create(size = image.size, colorfmt = 'rgba')
+            self._texture.blit_buffer(pimage.tobytes(), colorfmt = 'rgba', bufferfmt = 'ubyte')
+            self._avatarButton.rect = kivy.graphics.texture.Texture(size = (image.width, image.height))
+            self._avatarButton.rect.texture = self._texture
+
+    def play(self):
+        host = "localhost"
+        port = 12345
+
+        if (self._localRadioButton.isChecked()):
+            launched = False
+        
+            while (not launched):
+                try:
+                    self._localServer = Server.Server(port = port)
+                    launched = True
+                except OSError:
+                    port = random.randrange(1024, 49151)
+            
+            threading.Thread(target = self._localServer.acceptConnections).start()
+            
+            for i in range(1, self._playerNumber):
+                self._localClients.append(Client.Client(self, self._playerNumber, False, host, port))
+                self._localClients[-1]._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
+        else:
+            #TODO: put a valid server address
+            host = ""
+
+        self._globalRatio = 1.5 * kivy.core.window.Window.width / kivy.core.window.Window.height
+            
+        self._cardSize = (int(56 * _globalRatio), int(109 * _globalRatio))
+
+        self._client = Client.Client(self, self._playerNumber, True, host, port)
+        self._client._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
+
+        self.clear_widgets()
+
+        self._tableLabel = TableLabel(self)
+        self._tableLabel.padding = (0, 0, 0, 0)
+        self._pointsLabel = kivy.uix.label.Label(text = _("Attack points: 0 - Defence points: 0"), halign = 'center', valign = 'middle')
+
+        self._contractLabel = kivy.uix.label.Label(text = _("Choose a contract"), halign = 'center', valign = 'middle')
+        self._contractLabel.opacity = 0
+        self._contractLabel.disabled = True
+        self._contractComboBox = kivy.uix.spinner.Spinner()
+        self._contractComboBox.opacity = 0
+        self._contractComboBox.disabled = True
+
+        choices = []
+
+        for i in range(0, 4):
+            choices.append(str(Family.Family(i)))
+
+        self._kingLabel = kivy.uix.label.Label(text = _("Call a king"), halign = 'center', valign = 'middle')
+        self._kingLabel.opacity = 0
+        self._kingLabel.disabled = True
+        self._kingComboBox = kivy.uix.spinner.Spinner(text = choices[0], values = choices)
+        self._kingComboBox.opacity = 0
+        self._kingComboBox.disabled = True
+
+        self._dogLabel = kivy.uix.label.Label(text = _("Do a dog"), halign = 'center', valign = 'middle')
+        self._dogLabel.opacity = 0
+        self._dogLabel.disabled = True
+        self._dogComboBoxes = []
+        for i in range(0, 6):
+            self._dogComboBoxes.append(kivy.uix.spinner.Spinner())
+            self._dogComboBoxes[-1].opacity = 0
+            self._dogComboBoxes[-1].disabled = True
+            self._dogComboBoxes[-1].bind(on_text = self.comboBoxActivated)
+
+        self._cardLabel = kivy.uix.label.Label(text = _("Play a card"), halign = 'center', valign = 'middle')
+        self._cardLabel.opacity = 0
+        self._cardLabel.disabled = True
+        self._cardComboBox = kivy.uix.spinner.Spinner()
+        self._cardComboBox.opacity = 0
+        self._cardComboBox.disabled = True
+
+        okButton = kivy.uix.button.Button(text = _("OK"))
+        okButton.bind(on_press = self.ok)
+
+        self._rightLayout = kivy.uix.boxlayout.BoxLayout(orientation = "vertical", size_hint_x = None, width = kivy.core.window.Window.width / 4, spacing = 0)
+        self._rightLayout.add_widget(self._contractLabel)
+        self._rightLayout.add_widget(self._contractComboBox)
+        self._rightLayout.add_widget(self._kingLabel)
+        self._rightLayout.add_widget(self._kingComboBox)
+        self._rightLayout.add_widget(self._dogLabel)
+        self._dogIndex = 0
+        for i in range(0, 6):
+            self._rightLayout.add_widget(self._dogComboBoxes[i])
+        self._rightLayout.add_widget(self._cardLabel)
+        self._rightLayout.add_widget(self._cardComboBox)
+        self._rightLayout.add_widget(okButton)
+
+        layout = kivy.uix.boxlayout.BoxLayout(orientation = "vertical", spacing = 0)
+
+        layout.add_widget(self._tableLabel)
+        layout.add_widget(self._pointsLabel)
+        self.add_widget(layout)        
+        self.add_widget(self._rightLayout)
+
+        kivy.clock.Clock.schedule_interval(self.monitor, 0)
+
+    def ok(self, instance):
+        self._ok = True
+        
+    def monitor(self, dt):
+        if (not self._client or not self._client._gameData):
+            return
+
+        from common import Game
+
+        gameData = self._client._gameData
+        gameState = gameData._gameState
+        
+        if (gameState == Game.GameState.Begin
+            or gameState == Game.GameState.End):
+            self.displayTable(gameData._dog, False, True)
+        elif (gameState == Game.GameState.ChooseContract
+              or gameState == Game.GameState.CallKing):
+            self.displayTable(gameData._dog, False, True)
+        elif (gameState == Game.GameState.ShowDog):
+            self.displayTable(gameData._dog, True)
+        elif (gameState == Game.GameState.DoDog):
+            self.displayTable([], False, True)
+        
+        take = ""
+        
+        if (gameData._calledKing):
+            take = _("\nCalled king: ") \
+                   + str(gameData._calledKing)
+
+        if (gameData._contract):
+            take += _("\nContract: ") \
+                    + str(gameData._contract) \
+                    + _(" ({0} points)") \
+                    .format(gameData.attackTargetPoints())
+    
+        self._pointsLabel.setText(_("Attack points: {0} - Defence points: {1}")
+                                  .format(gameData.attackPoints(),
+                                          gameData.defencePoints())
+                                  + take)
+                   
+        if (self._tableLabel._mousePressPos):
+            if (self._game._currentPlayer != None and self._game._players[self._game._currentPlayer]._isHuman):
+                n = len(self._game._players[self._game._currentPlayer]._cards)
+                w = (n - 1) * cardSize[0] * overCardRatio + cardSize[0]
+
+                for j in range(0, n):
+                    p = (self._tableLabel._mousePressPos[0] - (self._tableLabel.imageWidth() - w) // 2,
+                         self._tableLabel._mousePressPos[1] - (self._tableLabel.imageHeight() - cardSize[1]))
+
+                    rect = kivy.graphics.Rectangle(pos = (int(j * cardSize[0] * overCardRatio), 0),
+                                                   size = (cardSize[0] * (1 if j == n - 1 else overCardRatio), cardSize[1]))
+
+                    if (rect.pos[0] <= p[0] and p[0] <= rect.pos[0] + rect.size[0]
+                        and rect.pos[1] <= p[1] and p[1] <= rect.pos[1] + rect.size[1]):
+                        pass
+                        enabledCards = []
+                    
+                        enabledCards = self._game._players[self._game._currentPlayer].enabledCards(self._game._centerCards,
+                                                                                                   self._game._firstRound,
+                                                                                                   self._game._calledKing,
+                                                                                                   self._dogLabel.opacity == 1)
+
+                        if (enabledCards[j]):
+                            if (self._cardComboBox.opacity == 1):
+                                self._cardComboBox.text = self._game._players[self._game._currentPlayer]._cards[j].name()
+                            elif (self._dogLabel.opacity == 1):
+                                self._tableLabel._mousePressPos = None
+                                self._dogComboBoxes[self._dogIndex].text = self._game._players[self._game._currentPlayer]._cards[j].name()
+                                self._dogIndex += 1
+                                if (self._dogIndex >= 6 or not self._dogComboBoxes[self._dogIndex].opacity == 1):
+                                    self._dogIndex = 0
+                        
+                        break
+
+        if (gameData._gameState == Game.GameState.End):
+            if (gameData.attackPoints() == 0
+                and gameData.defencePoints() == 0):
+                self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                self._content.add_widget(kivy.uix.label.Label(text = _("Nobody takes!")))
+                self._content.bind(on_touch_down = self.on_popup_ok)
+                self._popup = kivy.uix.popup.Popup(title = _("Game over"), content = self._content)
+                self._popup.open()
+            else:
+                if (gameData.attackWins()):
+                    self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                    self._content.bind(on_touch_down = self.on_popup_ok)
+                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if self._game._players[0].attackTeam() else _("Shame!"))
+                                                                         + _(" Attack wins ({0} points for {1} points)!")
+                                                                           .format(self._game.attackPoints(),
+                                                                                   self._game.attackTargetPoints())))
+                    self._popup = kivy.uix.popup.Popup(title = _("Game over"),
+                                                       content = self._content)
+                    self._popup.open()
+                else:
+                    self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                    self._content.bind(on_touch_down = self.on_popup_ok)
+                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if self._game._players[0].defenceTeam() else _("Shame!"))
+                                                                         + _(" Attack loses ({0} points for {1} points)!")
+                                                                           .format(self._game.attackPoints(),
+                                                                                   self._game.attackTargetPoints())))
+                    self._popup = kivy.uix.popup.Popup(title = _("Game over"),
+                                                       content = self._content)
+                    self._popup.open()
+
+    def on_popup_ok(self, instance, touch):
+        self._app.stop()
