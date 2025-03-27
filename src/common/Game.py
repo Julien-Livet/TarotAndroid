@@ -316,29 +316,7 @@ class GameData:
         
         if (self._currentPlayer == None):
             return tableImage
-                              
-        text = "?"
-        
-        if (self._players[self._currentPlayer].teamKnown()):
-            text = _("Attack") if self._players[self._currentPlayer].attackTeam() else _("Defence")
-    
-        draw = ImageDraw.Draw(tableImage)
-    
-        font = ImageFont.truetype("fonts/DejaVuSans.ttf", 20)
-        bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
-        w = bbox[2] - bbox[0]
-        h = int(1.5 * (bbox[3] - bbox[1]))
-        textImage = Image.new('RGBA', (w, h))
-        draw = ImageDraw.Draw(textImage)
-        draw.text((0, 0), text, font = font, fill = "black")
-        textImage = textImage.resize((int(textImage.width * globalRatio),
-                                      int(textImage.height * globalRatio)))
-        
-        image = Image.new('RGBA', (tableImage.width, tableImage.height))
-        image.paste(textImage, ((tableImage.width - textImage.width) // 2,
-                                (tableImage.height - textImage.height) // 2))
-        tableImage = Image.alpha_composite(tableImage, image)
-        
+
         enabledCards = self._players[self._currentPlayer].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
 
         playerCardsImage = imageForCards(self._players[self._currentPlayer]._cards,
@@ -367,40 +345,132 @@ class GameData:
         positions = [(center[0], center[1] + radius)]
         angles = [0]
         
-        for i in range(1, self._playerNumber):
+        for j in range(0, self._playerNumber):
+            i = (bottomPlayer + j) % self._playerNumber
+
             angles.append(angles[-1] - 360 / self._playerNumber)
             x = center[0] + radius * math.sin(math.radians(angles[-1]))
             y = center[1] + radius * math.cos(math.radians(angles[-1]))
             positions.append((x, y))
         
-        draw = ImageDraw.Draw(tableImage)
-        
-        font = ImageFont.truetype("fonts/DejaVuSans.ttf", 20)
+            img = common.intRoundImage(self._players[i]._avatar)
+            size = (32, 32)
+
+            if (not img):
+                img = Image.new('RGBA', size)
             
-        for i in range(0, self._playerNumber):
-            text = "?"
+            img = img.resize(size)
+            img = img.rotate(angles[j], expand = True)
+
+            avatarCenter = (int(x - gui._globalRatio * 100 * math.sin(math.radians(angles[j]))),
+                            int(y - gui._globalRatio * 100 * math.cos(math.radians(angles[j]))))
+
+            image = Image.new('RGBA', (tableImage.width, tableImage.height))
+            image.paste(img, (avatarCenter[0] - img.width // 2,
+                              avatarCenter[1] - img.height // 2))
+            tableImage = Image.alpha_composite(tableImage, image)
             
+            if (i == self._currentPlayer):
+                draw = ImageDraw.Draw(image)
+                draw.arc((avatarCenter[0] - img.width // 2,
+                          avatarCenter[1] - img.height // 2,
+                          avatarCenter[0] + img.width // 2,
+                          avatarCenter[1] + img.height // 2),
+                          start = -self._remainingTime / 30 * 360 + -90,
+                          end = -90,
+                          fill = "green", width = 2)
+
             if (self._players[i].teamKnown()):
-                text = "A" if self._players[i].attackTeam() else "D"
-        
-            text += " - " + str(i)
-            
+                img = Image.open(os.path.dirname(__file__) + "/../../images/shield.png")
+
+                if (self._players[i].attackTeam()):
+                    if (i == self._taker):
+                        img = Image.open(os.path.dirname(__file__) + "/../../images/swords.png")
+                    else:
+                        img = Image.open(os.path.dirname(__file__) + "/../../images/sword.png")
+
+                img = common.extRoundImage(img, (255, 255, 255, 255))
+
+                size = (16, 16)
+                img = img.resize(size)
+
+                image = Image.new('RGBA', (tableImage.width, tableImage.height))
+                p = (avatarCenter[0] + 16,
+                     avatarCenter[1] + radius - gui._globalRatio * 120 - 16)
+                image.paste(img, (int(p[0] - img.width // 2),
+                                  int(p[1] - img.height // 2)))
+                tableImage = Image.alpha_composite(tableImage, image)
+
+            if (i == self._taker and self._calledKing):
+                img = Image.open(os.path.dirname(__file__) + "/../../images/"
+                                 + self._calledKing.imageName() + ".png")
+
+                img = common.extRoundImage(img, (255, 255, 255, 255))
+
+                size = (16, 16)
+                img = img.resize(size)
+
+                image = Image.new('RGBA', (tableImage.width, tableImage.height))
+                p = (avatarCenter[0] + 16,
+                     avatarCenter[1] + radius - gui._globalRatio * 120 + 16)
+                image.paste(img, (int(p[0] - img.width // 2),
+                                  int(p[1] - img.height // 2)))
+                tableImage = Image.alpha_composite(tableImage, image)
+
+            text = self._players[i]._name
+            draw = ImageDraw.Draw(tableImage)
+            font = ImageFont.truetype("DejaVuSans-Bold.ttf", 14)
             bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
             w = bbox[2] - bbox[0]
             h = int(1.5 * (bbox[3] - bbox[1]))
             textImage = Image.new('RGBA', (w, h))
             draw = ImageDraw.Draw(textImage)
-            draw.text((0, 0), text, font = font, fill = "black")
+            draw.text((0, 0), text, font = font, fill = "white")
+            textImage = textImage.resize((int(textImage.width * gui._globalRatio),
+                                          int(textImage.height * gui._globalRatio)))
             
-            if (i == self._currentPlayer):
-                draw.line((0, 0.95 * h, w, 0.95 * h), fill = "black", width = 2)
+            image = Image.new('RGBA', (tableImage.width, tableImage.height))
+            image.paste(textImage, (int(avatarCenter[0] - textImage.width / 2),
+                                    int(avatarCenter[1] + gui._globalRatio * 50 - textImage.height / 2)))
+            tableImage = Image.alpha_composite(tableImage, image)
+            
+            text = str(self._players[i].points())
+            draw = ImageDraw.Draw(tableImage)
+            font = ImageFont.truetype("DejaVuSans.ttf", 14)
+            bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
+            w = bbox[2] - bbox[0]
+            h = int(1.5 * (bbox[3] - bbox[1]))
+            textImage = Image.new('RGBA', (w, h))
+            draw = ImageDraw.Draw(textImage)
+            draw.text((0, 0), text, font = font, fill = "white")
+            textImage = textImage.resize((int(textImage.width * gui._globalRatio),
+                                          int(textImage.height * gui._globalRatio)))
+            
+            image = Image.new('RGBA', (tableImage.width, tableImage.height))
+            p = (avatarCenter[0] - 16,
+                 avatarCenter[1] + radius - gui._globalRatio * 120 + 16)
+            image.paste(textImage, (int(p[0] - textImage.width // 2),
+                                    int(p[1] - textImage.height // 2)))
+            tableImage = Image.alpha_composite(tableImage, image)
 
-            textImage = textImage.resize((int(textImage.width * globalRatio),
-                                          int(textImage.height * globalRatio)))
-            
-            img = Image.new('RGBA', (tableImage.width, tableImage.height))
-            img.paste(textImage, (int(positions[i][0]), int(positions[i][1])))
-            tableImage = Image.alpha_composite(tableImage, img)
+            text = "H" if self._players[i].isHuman() else "B" #Human or Bot
+            draw = ImageDraw.Draw(tableImage)
+            font = ImageFont.truetype("DejaVuSans.ttf", 14)
+            bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
+            w = bbox[2] - bbox[0]
+            h = int(1.5 * (bbox[3] - bbox[1]))
+            textImage = Image.new('RGBA', (w, h))
+            draw = ImageDraw.Draw(textImage)
+            draw.text((0, 0), text, font = font, fill = "white")
+            textImage = textImage.resize((int(textImage.width * gui._globalRatio),
+                                          int(textImage.height * gui._globalRatio)))
+
+            image = Image.new('RGBA', (tableImage.width, tableImage.height))
+            p = (avatarCenter[0] - 16,
+                 avatarCenter[1] + radius - gui._globalRatio * 120 - 16)
+            image.paste(textImage, (int(p[0] - textImage.width // 2),
+                                    int(p[1] - textImage.height // 2)))
+            tableImage = Image.alpha_composite(tableImage, image)
 
         return tableImage
 
