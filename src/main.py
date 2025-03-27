@@ -1,13 +1,16 @@
 from client import Window
 import locale
 import os
+import gettext
 import kivy.app
 
 class App(kivy.app.App):
     def build(self):
         kivy.core.window.Window.orientation = 'landscape'
 
-        return Window.Window(self)
+        self._window = Window.Window(self)
+
+        return self._window
 
 if (__name__ == "__main__"):
     locale_dir = os.path.join(os.path.dirname(__file__), 'locales')
@@ -24,3 +27,4 @@ if (__name__ == "__main__"):
     app = App()
     app.run()
 
+    app._window.close()

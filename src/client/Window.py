@@ -1,11 +1,17 @@
 from common import Family
 from common import TableLabel
 from common import common
+from common import TableLabel
 from client import Client
 import io
+import kivy.app
 import kivy.graphics.texture
 import kivy.uix
+import kivy.uix.boxlayout
 import kivy.uix.image
+import kivy.uix.button
+import kivy.uix.checkbox
+import kivy.uix.textinput
 import math
 import os
 from PIL import Image
@@ -17,51 +23,14 @@ import threading
 
 iniFilename = os.path.dirname(__file__) + "/../../Tarot.ini"
 
-class TableLabel(kivy.uix.image.Image):
-    def __init__(self, window, image: Image = None):
-        super().__init__()
-        self._window = window
-        self.setImage(image)
-        self._mousePressPos = None
-        self._pressed = False
-        self.img = None
-    
-    def setImage(self, image: Image):
-        self._image = image
-        
-        if (image):
-            self.img_byte_arr = io.BytesIO()
-            image.save(self.img_byte_arr, format='PNG')
-            self.img_byte_arr.seek(0)
-            self.img = kivy.core.image.Image(self.img_byte_arr, ext="png")
-            self.texture = self.img.texture
-            self.size = self.img.texture.size
-            self.size_hint = (None, None)
+class MyTextInput(kivy.uix.textinput.TextInput):
+    max_characters = 8
 
-    def imageWidth(self):
-        if (not self.img):
-            return 0
-            
-        return self.img.texture.size[0]
+    def insert_text(self, substring, from_undo = False):
+        if (len(self.text) >= self.max_characters and self.max_characters > 0):
+            substring = ""
 
-    def imageHeight(self):
-        if (not self.img):
-            return 0
-            
-        return self.img.texture.size[1]
-
-    def on_touch_up(self, touch):
-        super().on_touch_up(touch)
-        if (not self._pressed):
-            p = self.to_window(touch.x, touch.y)
-            self._mousePressPos = [p[0], self._window.height - p[1]]
-        else:
-            self._mousePressPos = None
-
-    def on_touch_down(self, touch):
-        super().on_touch_down(touch)
-        self._mousePressPos = None
-        self._pressed = False
+        kivy.uix.textinput.TextInput.insert_text(self, substring, from_undo)
 
 class Window(kivy.uix.boxlayout.BoxLayout):
     def __init__(self, app: kivy.app.App):
@@ -81,7 +50,6 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self._client = None
         self._avatarFilename = os.path.dirname(__file__) + "/../../images/avatar.png"
         self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
-        self._init = False
         self._localServer = None
         self._localClients = []
         self._timer = None
@@ -90,8 +58,11 @@ class Window(kivy.uix.boxlayout.BoxLayout):
 
         layout = kivy.uix.boxlayout.BoxLayout(orientation = "vertical")
 
-        self._lineEdit = kivy.uix.textinput.TextInput(max_text_length = 8, multiline = False)
+        self._lineEdit = MyTextInput()
+        self._lineEdit.multiline = False
         self._avatarButton = kivy.uix.button.Button()
+        self._avatarButton.size = (128, 128)
+        self._avatarButton.size_hint = (None, None)
         self._avatarButton.bind(on_press = self.chooseAvatar)
         self._avatar = None
         
@@ -102,13 +73,14 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         fiveButton = kivy.uix.button.Button(text = _("Five players"))
         fiveButton.bind(on_press = self.fivePlayers)
 
-        self._localRadioButton = kivy.uix.RadioButton(text = _("Local"), group = "group")
-        self._onlineRadioButton = kivy.uix.RadioButton(text = _("Online"), group = "group")
-        self._localRadioButton.active = True
+        self._localRadioButton = kivy.uix.checkbox.CheckBox(active = True)
+        self._localRadioButton.group = "group"
+        self._onlineRadioButton = kivy.uix.checkbox.CheckBox(active = False)
+        self._onlineRadioButton.group = "group"
 
         if (os.path.exists(iniFilename)):
             lines = []
-            
+
             with open(iniFilename, 'r') as file:
                 lines = file.read().split("\n")
                 
@@ -119,19 +91,16 @@ class Window(kivy.uix.boxlayout.BoxLayout):
             
             if (avatarFilename):
                 self._avatarFilename = avatarFilename
-
-                self._avatar = Image.open(avatarFilename)
-
-                image = self._avatar.convert('RGBA')
-                image = image.resize((32, 32))
-                self._texture = Texture.create(size = image.size, colorfmt = 'rgba')
-                self._texture.blit_buffer(pimage.tobytes(), colorfmt = 'rgba', bufferfmt = 'ubyte')
-                self._avatarButton.rect = kivy.graphics.texture.Texture(size = (image.width, image.height))
-                self._avatarButton.rect.texture = self._texture
                 
             self._localRadioButton.active = (local == "True")
             self._onlineRadioButton.active = (local == "False")
 
+        if (self._avatarFilename):
+            self._avatar = Image.open(self._avatarFilename)
+
+            self._avatarButton.background_normal = self._avatarFilename
+            self._avatarButton.background_down = self._avatarFilename
+            
         horizontalLayout = kivy.uix.boxlayout.BoxLayout(orientation = "horizontal")
 
         horizontalLayout.add_widget(self._lineEdit)
@@ -141,12 +110,25 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         layout.add_widget(threeButton)
         layout.add_widget(fourButton)
         layout.add_widget(fiveButton)
-        layout.add_widget(self._localRadioButton)
-        layout.add_widget(self._onlineRadioButton)
+
+        l = kivy.uix.boxlayout.BoxLayout(orientation = "horizontal")
+        l.add_widget(self._localRadioButton)
+        l.add_widget(kivy.uix.label.Label(text = _("Local"), halign = 'left', valign = 'middle'))
+        layout.add_widget(l)
+
+        l = kivy.uix.boxlayout.BoxLayout(orientation = "horizontal")
+        l.add_widget(self._onlineRadioButton)
+        l.add_widget(kivy.uix.label.Label(text = _("Online"), halign = 'left', valign = 'middle'))
+        layout.add_widget(l)
 
         self.add_widget(layout)
 
-    def __del__(self):
+    def close(self):
+        with open(iniFilename, 'w') as file:
+            file.write(self._lineEdit.text + "\n")
+            file.write(self._avatarFilename + "\n")
+            file.write(str(self._localRadioButton.active) + "\n")
+
         if (self._localServer):
             self._localServer.disconnect()
             
@@ -191,7 +173,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 self._dogIndex = i
                 break
 
-    def chooseAvatar(self):
+    def chooseAvatar(self, instance):
         plyer.filechooser.open_file(on_selection = self.on_file_select)
 
     def on_file_select(self, selection):
@@ -199,18 +181,14 @@ class Window(kivy.uix.boxlayout.BoxLayout):
             self._avatarFilename = selection[0]
             self._avatar = Image.open(self._avatarFilename).resize(64, 64)
 
-            image = self._avatar.convert('RGBA')
-            image = image.resize((32, 32))
-            self._texture = Texture.create(size = image.size, colorfmt = 'rgba')
-            self._texture.blit_buffer(pimage.tobytes(), colorfmt = 'rgba', bufferfmt = 'ubyte')
-            self._avatarButton.rect = kivy.graphics.texture.Texture(size = (image.width, image.height))
-            self._avatarButton.rect.texture = self._texture
+            self._avatarButton.background_normal = self._avatarFilename
+            self._avatarButton.background_down = self._avatarFilename
 
     def play(self):
         host = "localhost"
         port = 12345
 
-        if (self._localRadioButton.isChecked()):
+        if (self._localRadioButton.active):
             launched = False
         
             while (not launched):
@@ -238,7 +216,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
 
         self.clear_widgets()
 
-        self._tableLabel = TableLabel(self)
+        self._tableLabel = TableLabel.TableLabel(self)
         self._tableLabel.padding = (0, 0, 0, 0)
         self._pointsLabel = kivy.uix.label.Label(text = _("Attack points: 0 - Defence points: 0"), halign = 'center', valign = 'middle')
 

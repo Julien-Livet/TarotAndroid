@@ -1,5 +1,4 @@
 from enum import Enum
-from PyQt5.QtCore import QCoreApplication
 
 class Contract(Enum):
     Little = 0
@@ -12,13 +11,13 @@ class Contract(Enum):
     
     def name(self) -> str:
         if (self.value == 0):
-            return QCoreApplication.translate("name", "Little")
+            return _("Little")
         elif (self.value == 1):
-            return QCoreApplication.translate("name", "Guard")
+            return _("Guard")
         elif (self.value == 2):
-            return QCoreApplication.translate("name", "Guard without")
+            return _("Guard without")
         elif (self.value == 3):
-            return QCoreApplication.translate("name", "Guard against")
+            return _("Guard against")
         else:
             return ""
 

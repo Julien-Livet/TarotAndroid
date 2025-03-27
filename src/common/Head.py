@@ -1,5 +1,4 @@
 from enum import Enum
-from PyQt5.QtCore import QCoreApplication
 
 class Head(Enum):
     Jack = 0
@@ -12,13 +11,13 @@ class Head(Enum):
     
     def name(self) -> str:
         if (self.value == 0):
-            return QCoreApplication.translate("name", "Jack")
+            return _("Jack")
         elif (self.value == 1):
-            return QCoreApplication.translate("name", "Knight")
+            return _("Knight")
         elif (self.value == 2):
-            return QCoreApplication.translate("name", "Queen")
+            return _("Queen")
         elif (self.value == 3):
-            return QCoreApplication.translate("name", "King")
+            return _("King")
         else:
             return ""
 

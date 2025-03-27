@@ -1,5 +1,4 @@
 from enum import Enum
-from PyQt5.QtCore import QCoreApplication
 
 class Family(Enum):
     Heart = 0
@@ -24,13 +23,13 @@ class Family(Enum):
 
     def name(self) -> str:
         if (self.value == 0):
-            return QCoreApplication.translate("name", "Heart")
+            return _("Heart")
         elif (self.value == 1):
-            return QCoreApplication.translate("name", "Diamond")
+            return _("Diamond")
         elif (self.value == 2):
-            return QCoreApplication.translate("name", "Club")
+            return _("Club")
         elif (self.value == 3):
-            return QCoreApplication.translate("name", "Spade")
+            return _("Spade")
         else:
             return ""
 

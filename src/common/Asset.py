@@ -1,5 +1,3 @@
-from PyQt5.QtCore import QCoreApplication
-
 class Asset:
     def __init__(self, value: int):
         self._value = value
@@ -25,9 +23,9 @@ class Asset:
 
     def name(self) -> str:
         if (self.value() == 0):
-            return QCoreApplication.translate("name", "Fool")
+            return _("Fool")
             
-        return QCoreApplication.translate("name", "Asset {0}").format(self.value())
+        return _("Asset {0}").format(self.value())
 
     def imageName(self) -> str:
         return "asset-"+ str(self.value())

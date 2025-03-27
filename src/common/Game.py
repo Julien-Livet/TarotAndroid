@@ -10,9 +10,6 @@ from enum import Enum
 import math
 import os
 from PIL import Image, ImageDraw, ImageFont
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtGui import QTransform
-from PyQt5 import QtTest
 import random
 from server import Server
 

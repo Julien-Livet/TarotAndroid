@@ -1,6 +1,5 @@
 from common import Family
 from common import Head
-from PyQt5.QtCore import QCoreApplication
 
 class FamilyCard:
     def __init__(self, family: Family, head: Head = None, value: int = None):
@@ -23,58 +22,58 @@ class FamilyCard:
 
         if (self.value() == 1):
             if (self._family == Family.Family.Heart):
-                s = QCoreApplication.translate("name", "Ace of hearts")
+                s = _("Ace of hearts")
             elif (self._family == Family.Family.Diamond):
-                s = QCoreApplication.translate("name", "Ace of diamonds")
+                s = _("Ace of diamonds")
             elif (self._family == Family.Family.Club):
-                s = QCoreApplication.translate("name", "Ace of clubs")
+                s = _("Ace of clubs")
             elif (self._family == Family.Family.Spade):
-                s = QCoreApplication.translate("name", "Ace of spade")
+                s = _("Ace of spade")
         elif (self.value() <= 10):
             if (self._family == Family.Family.Heart):
-                s = QCoreApplication.translate("name", "Heart {0}").format(self.value())
+                s = _("Heart {0}").format(self.value())
             elif (self._family == Family.Family.Diamond):
-                s = QCoreApplication.translate("name", "Diamond {0}").format(self.value())
+                s = _("Diamond {0}").format(self.value())
             elif (self._family == Family.Family.Club):
-                s = QCoreApplication.translate("name", "Club {0}").format(self.value())
+                s = _("Club {0}").format(self.value())
             elif (self._family == Family.Family.Spade):
-                s = QCoreApplication.translate("name", "Spade {0}").format(self.value())
+                s = _("Spade {0}").format(self.value())
         elif (self.value() == 11):
             if (self._family == Family.Family.Heart):
-                s = QCoreApplication.translate("name", "Heart jack")
+                s = _("Heart jack")
             elif (self._family == Family.Family.Diamond):
-                s = QCoreApplication.translate("name", "Diamond jack")
+                s = _("Diamond jack")
             elif (self._family == Family.Family.Club):
-                s = QCoreApplication.translate("name", "Club jack")
+                s = _("Club jack")
             elif (self._family == Family.Family.Spade):
-                s = QCoreApplication.translate("name", "Spade jack")
+                s = _("Spade jack")
         elif (self.value() == 12):
             if (self._family == Family.Family.Heart):
-                s = QCoreApplication.translate("name", "Heart knight")
+                s = _("Heart knight")
             elif (self._family == Family.Family.Diamond):
-                s = QCoreApplication.translate("name", "Diamond knight")
+                s = _("Diamond knight")
             elif (self._family == Family.Family.Club):
-                s = QCoreApplication.translate("name", "Club knight")
+                s = _("Club knight")
             elif (self._family == Family.Family.Spade):
-                s = QCoreApplication.translate("name", "Spade knight")
+                s = _("Spade knight")
         elif (self.value() == 13):
             if (self._family == Family.Family.Heart):
-                s = QCoreApplication.translate("name", "Heart queen")
+                s = _("Heart queen")
             elif (self._family == Family.Family.Diamond):
-                s = QCoreApplication.translate("name", "Diamond queen")
+                s = _("Diamond queen")
             elif (self._family == Family.Family.Club):
-                s = QCoreApplication.translate("name", "Club queen")
+                s = _("Club queen")
             elif (self._family == Family.Family.Spade):
-                s = QCoreApplication.translate("name", "Spade queen")
+                s = _("Spade queen")
         else: #elif (self.value() == 14):
             if (self._family == Family.Family.Heart):
-                s = QCoreApplication.translate("name", "Heart king")
+                s = _("Heart king")
             elif (self._family == Family.Family.Diamond):
-                s = QCoreApplication.translate("name", "Diamond king")
+                s = _("Diamond king")
             elif (self._family == Family.Family.Club):
-                s = QCoreApplication.translate("name", "Club king")
+                s = _("Club king")
             elif (self._family == Family.Family.Spade):
-                s = QCoreApplication.translate("name", "Spade king")
+                s = _("Spade king")
 
         return s
 

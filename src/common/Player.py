@@ -4,8 +4,6 @@ from common import Family
 from common import common
 import os
 from PIL import Image
-from PyQt5.QtCore import QCoreApplication
-from PyQt5 import QtTest
 import random
 
 class Player:
