@@ -20,7 +20,7 @@ class Player:
                  "Teddy", "Sylvie", "Sylvain", "Thibault", "Nicolas", "Émilie",
                  "Marine", "Céline", "Michel", "Alice", "Matthieu", "Pauline",
                  "Bob", "Corinne", "Aline", "Hélène", "David", "Aude", "Audrey",
-                 "Georges", "Martin", "Charles", "Cécile", "Étienne", "Émile"
+                 "Georges", "Martin", "Charles", "Cécile", "Étienne", "Émile",
                  "André", "Marcel", "Yves", "Agathe", "Ernest", "Jeanne",
                  "Robert", "Arthur", "Bruno", "Antoine", "Emma", "Adèle",
                  "Élise", "Fred", "Magalie", "Benoît", "Denis", "Zélie",
