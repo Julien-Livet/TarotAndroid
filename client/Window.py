@@ -321,7 +321,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
               or gameState == Game.GameState.CallKing):
             self.displayTable(gameData._dog, False, True)
         elif (gameState == Game.GameState.ShowDog):
-            self.displayTable(gameData._dog, True)
+            self.displayTable(gameData._dog, True, True)
         elif (gameState == Game.GameState.Play and len(gameData._centerCards)):
             self.displayTable(gameData._centerCards, True, False)
         elif (gameState == Game.GameState.DoDog):
