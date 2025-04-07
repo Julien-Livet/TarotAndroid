@@ -304,15 +304,15 @@ class GameData:
             tableImage = Image.alpha_composite(tableImage, image)
         
         center = (tableImage.width - 100 * window._globalRatio, 50 * window._globalRatio)
-        radius = 2 * window._globalRatio
+        radius = 50 * window._globalRatio
         
-        positions = [(center[0], center[1] + radius)]
+        positions = [(int(center[0]), int(center[1] + radius))]
         angles = [0]
         
         for j in range(0, self._playerNumber):
             angles.append(angles[-1] - 360 / self._playerNumber)
-            x = center[0] + radius * math.sin(math.radians(angles[-1]))
-            y = center[1] + radius * math.cos(math.radians(angles[-1]))
+            x = int(center[0] + radius * math.sin(math.radians(angles[-1])))
+            y = int(center[1] + radius * math.cos(math.radians(angles[-1])))
             positions.append((x, y))
         
         factorSize = 48.0 / 32.0
@@ -328,8 +328,7 @@ class GameData:
 
             img = img.resize(size)
 
-            avatarCenter = (int(x - window._globalRatio * 75 * math.sin(math.radians(angles[j] + 180))),
-                            int(y - window._globalRatio * 75 * math.cos(math.radians(angles[j] + 180))))
+            avatarCenter = positions[j]
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(img, (avatarCenter[0] - img.width // 2,
@@ -397,7 +396,7 @@ class GameData:
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(textImage, (int(avatarCenter[0] - textImage.width / 2),
-                                    int(avatarCenter[1] + window._globalRatio * 40 - textImage.height / 2)))
+                                    int(avatarCenter[1] + window._globalRatio * 20 - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             text = str(self._players[i].points())

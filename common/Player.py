@@ -478,19 +478,18 @@ class Player:
                 except NotImplementedError:
                     pass
 
-            window._cardLabel.setVisible(True)
-            window._cardComboBox.clear()
-            window._cardComboBox.addItems(choices)
-            window._cardComboBox.setVisible(True)
+            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardLabel, 1))
+            kivy.clock.Clock.schedule_once(partial(window.setSpinnerValues, window._cardComboBox, choices))
+            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardComboBox, 1))
             window._ok = False
             
             while (not window._ok):
                 time.sleep(0.01)
             
-            window._cardLabel.setVisible(False)
-            window._cardComboBox.setVisible(False)
+            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardLabel, 0))
+            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardComboBox, 0))
             
-            selectedCard = {v: k for k, v in strCards.items()}.get(choices[window._cardComboBox.currentIndex()])
+            selectedCard = {v: k for k, v in strCards.items()}.get(window._cardComboBox.text)
 
             card = self._cards[selectedCard]
             del self._cards[selectedCard]
