@@ -12,7 +12,7 @@ package.domain = org.tarot
 # (str) Source code where the main.py live
 source.dir = .
 
-source.include_dirs = images, locales, fonts
+source.include_dirs = images, locales, fonts, src
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py, png, jpg, kv, atlas, mo, ttf
@@ -39,7 +39,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3, kivy, pillow
+requirements = python3, kivy, pillow, plyer, rpyc
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -101,6 +101,7 @@ android.java_sdk = /usr/lib/jvm/java-17-openjdk
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
+android.permissions = WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
