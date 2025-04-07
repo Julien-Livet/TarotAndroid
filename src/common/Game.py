@@ -290,8 +290,8 @@ class GameData:
         if (playerCardsImage):
             img = playerCardsImage
 
-            bgImg = img.resize((int(img.width + 10 * globalRatio),
-                                int(img.height + 10 * globalRatio)))
+            bgImg = img.resize((int(img.width + 10 * window._globalRatio),
+                                int(img.height + 10 * window._globalRatio)))
             bgImg.paste((255, 255, 0, 128), [0, 0, bgImg.width, bgImg.height])
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
@@ -303,8 +303,8 @@ class GameData:
             image.paste(img, ((tableImage.width - img.width) // 2, tableImage.height - img.height))
             tableImage = Image.alpha_composite(tableImage, image)
         
-        center = (tableImage.width - 100 * globalRatio, 50 * globalRatio)
-        radius = 50 * globalRatio
+        center = (tableImage.width - 100 * window._globalRatio, 50 * window._globalRatio)
+        radius = 50 * window._globalRatio
         
         positions = [(center[0], center[1] + radius)]
         angles = [0]
