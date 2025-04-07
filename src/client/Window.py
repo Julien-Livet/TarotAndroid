@@ -347,14 +347,14 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         if (self._tableLabel._mousePressPos):
             if (gameData._currentPlayer != None and gameData._players[gameData._currentPlayer]._isHuman):
                 n = len(gameData._players[gameData._currentPlayer]._cards)
-                w = (n - 1) * cardSize[0] * overCardRatio + cardSize[0]
+                w = (n - 1) * self._cardSize[0] * self._overCardRatio + self._cardSize[0]
 
                 for j in range(0, n):
                     p = (self._tableLabel._mousePressPos[0] - (self._tableLabel.imageWidth() - w) // 2,
-                         self._tableLabel._mousePressPos[1] - (self._tableLabel.imageHeight() - cardSize[1]))
+                         self._tableLabel._mousePressPos[1] - (self._tableLabel.imageHeight() - self._cardSize[1]))
 
-                    rect = kivy.graphics.Rectangle(pos = (int(j * cardSize[0] * overCardRatio), 0),
-                                                   size = (cardSize[0] * (1 if j == n - 1 else overCardRatio), cardSize[1]))
+                    rect = kivy.graphics.Rectangle(pos = (int(j * self._cardSize[0] * self._overCardRatio), 0),
+                                                   size = (self._cardSize[0] * (1 if j == n - 1 else self._overCardRatio), self._cardSize[1]))
 
                     if (rect.pos[0] <= p[0] and p[0] <= rect.pos[0] + rect.size[0]
                         and rect.pos[1] <= p[1] and p[1] <= rect.pos[1] + rect.size[1]):
