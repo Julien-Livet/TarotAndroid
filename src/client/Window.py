@@ -17,6 +17,7 @@ import math
 import os
 from PIL import Image
 import plyer
+
 import random
 from server import Server
 import struct
@@ -178,7 +179,12 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         if (not self._client or not self._client._id):
             return
 
-        self._tableLabel.setImage(self._game.tableImage(self._showPlayers, centerCards, displayCenterCards, centerCardsIsDog))
+        img = self._client._gameData.tableImage(self,
+                                                [i == self._client._id for i in range(0, self._client._gameData._playerNumber)],
+                                                centerCards, displayCenterCards,
+                                                centerCardsIsDog, self._client._id)
+
+        self._tableLabel.setImage(img)
 
     def comboBoxActivated(self, spinner, text):
         for i in range(0, 6):
@@ -294,7 +300,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self.add_widget(layout)        
         self.add_widget(self._rightLayout)
 
-        kivy.clock.Clock.schedule_interval(self.monitor, 100)
+        kivy.clock.Clock.schedule_interval(self.monitor, 0.01)
 
     def ok(self, instance):
         self._ok = True
@@ -333,14 +339,14 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                     + _(" ({0} points)") \
                     .format(gameData.attackTargetPoints())
     
-        self._pointsLabel.setText(_("Attack points: {0} - Defence points: {1}")
-                                  .format(gameData.attackPoints(),
-                                          gameData.defencePoints())
-                                  + take)
+        self._pointsLabel.text = _("Attack points: {0} - Defence points: {1}") \
+                                 .format(gameData.attackPoints(), \
+                                         gameData.defencePoints()) \
+                                 + take
                    
         if (self._tableLabel._mousePressPos):
-            if (self._game._currentPlayer != None and self._game._players[self._game._currentPlayer]._isHuman):
-                n = len(self._game._players[self._game._currentPlayer]._cards)
+            if (gameData._currentPlayer != None and gameData._players[gameData._currentPlayer]._isHuman):
+                n = len(gameData._players[gameData._currentPlayer]._cards)
                 w = (n - 1) * cardSize[0] * overCardRatio + cardSize[0]
 
                 for j in range(0, n):
@@ -355,17 +361,17 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                         pass
                         enabledCards = []
                     
-                        enabledCards = self._game._players[self._game._currentPlayer].enabledCards(self._game._centerCards,
-                                                                                                   self._game._firstRound,
-                                                                                                   self._game._calledKing,
-                                                                                                   self._dogLabel.opacity == 1)
+                        enabledCards = gameData._players[gameData._currentPlayer].enabledCards(gameData._centerCards,
+                                                                                               gameData._firstRound,
+                                                                                               gameData._calledKing,
+                                                                                               self._dogLabel.opacity == 1)
 
                         if (enabledCards[j]):
                             if (self._cardComboBox.opacity == 1):
-                                self._cardComboBox.text = self._game._players[self._game._currentPlayer]._cards[j].name()
+                                self._cardComboBox.text = gameData._players[gameData._currentPlayer]._cards[j].name()
                             elif (self._dogLabel.opacity == 1):
                                 self._tableLabel._mousePressPos = None
-                                self._dogComboBoxes[self._dogIndex].text = self._game._players[self._game._currentPlayer]._cards[j].name()
+                                self._dogComboBoxes[self._dogIndex].text = gameData._players[gameData._currentPlayer]._cards[j].name()
                                 self._dogIndex += 1
                                 if (self._dogIndex >= 6 or not self._dogComboBoxes[self._dogIndex].opacity == 1):
                                     self._dogIndex = 0
@@ -384,20 +390,20 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                 if (gameData.attackWins()):
                     self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
                     self._content.bind(on_touch_down = self.on_popup_ok)
-                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if self._game._players[0].attackTeam() else _("Shame!"))
+                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if gameData._players[0].attackTeam() else _("Shame!"))
                                                                          + _(" Attack wins ({0} points for {1} points)!")
-                                                                           .format(self._game.attackPoints(),
-                                                                                   self._game.attackTargetPoints())))
+                                                                           .format(gameData.attackPoints(),
+                                                                                   gameData.attackTargetPoints())))
                     self._popup = kivy.uix.popup.Popup(title = _("Game over"),
                                                        content = self._content)
                     self._popup.open()
                 else:
                     self._content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
                     self._content.bind(on_touch_down = self.on_popup_ok)
-                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if self._game._players[0].defenceTeam() else _("Shame!"))
+                    self._content.add_widget(kivy.uix.label.Label(text = (_("Well done!") if gameData._players[0].defenceTeam() else _("Shame!"))
                                                                          + _(" Attack loses ({0} points for {1} points)!")
-                                                                           .format(self._game.attackPoints(),
-                                                                                   self._game.attackTargetPoints())))
+                                                                           .format(gameData.attackPoints(),
+                                                                                   gameData.attackTargetPoints())))
                     self._popup = kivy.uix.popup.Popup(title = _("Game over"),
                                                        content = self._content)
                     self._popup.open()

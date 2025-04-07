@@ -7,6 +7,7 @@ from common import Head
 from common import Player
 from common import common
 from enum import Enum
+import kivy
 import math
 import os
 from PIL import Image, ImageDraw, ImageFont
@@ -271,7 +272,7 @@ class GameData:
                                 int(kivy.core.window.Window.height * 8 / 10)),
                                color=(139, 69, 19))
         
-        centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
+        centerCardsImage = common.imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
 
         if (centerCardsImage):
             tableImage.paste(centerCardsImage, ((tableImage.width - centerCardsImage.width) // 2,
