@@ -285,7 +285,7 @@ class GameData:
         enabledCards = self._players[self._currentPlayer].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
 
         playerCardsImage = common.imageForCards(self._players[self._currentPlayer]._cards,
-                                                enabledCards, window._cardSize, window._overCardRatio, True)
+                                                enabledCards, window._cardSize, window._overCardRatio, self._currentPlayer == window._client._id)
         
         if (playerCardsImage):
             img = playerCardsImage
