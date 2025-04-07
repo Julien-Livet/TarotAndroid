@@ -195,3 +195,9 @@ msgstr "Bravo !"
 
 msgid "Shame!"
 msgstr "Dommage !"
+
+msgid "Local"
+msgstr "Local"
+
+msgid "Online"
+msgstr "En ligne"
