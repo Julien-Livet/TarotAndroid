@@ -59,7 +59,7 @@ class Card:
             return self._familyCard.imageName()
 
     def image(self, cardSize):
-        image = Image.open(os.path.dirname(__file__) + "/../../images/" + self.imageName() + ".png")
+        image = Image.open(os.path.dirname(__file__) + "/../images/" + self.imageName() + ".png")
 
         image = image.resize(cardSize)
         

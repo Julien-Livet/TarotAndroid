@@ -285,7 +285,7 @@ class GameData:
         enabledCards = self._players[self._currentPlayer].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
 
         playerCardsImage = common.imageForCards(self._players[self._currentPlayer]._cards,
-                                                enabledCards, window._cardSize, window._overCardRatio, shown = showCenterCards)
+                                                enabledCards, window._cardSize, window._overCardRatio, True)
         
         if (playerCardsImage):
             img = playerCardsImage
@@ -304,29 +304,32 @@ class GameData:
             tableImage = Image.alpha_composite(tableImage, image)
         
         center = (tableImage.width - 100 * window._globalRatio, 50 * window._globalRatio)
-        radius = 50 * window._globalRatio
+        radius = 2 * window._globalRatio
         
         positions = [(center[0], center[1] + radius)]
         angles = [0]
         
         for j in range(0, self._playerNumber):
-            i = (bottomPlayer + j) % self._playerNumber
-
             angles.append(angles[-1] - 360 / self._playerNumber)
             x = center[0] + radius * math.sin(math.radians(angles[-1]))
             y = center[1] + radius * math.cos(math.radians(angles[-1]))
             positions.append((x, y))
         
+        factorSize = 48.0 / 32.0
+        
+        for j in range(0, self._playerNumber):
+            i = (bottomPlayer + j) % self._playerNumber
+        
             img = common.intRoundImage(self._players[i]._avatar)
-            size = (32, 32)
+            size = (int(factorSize * 32), int(factorSize * 32))
 
             if (not img):
                 img = Image.new('RGBA', size)
 
             img = img.resize(size)
 
-            avatarCenter = (int(x - window._globalRatio * 100 * math.sin(math.radians(angles[j]))),
-                            int(y - window._globalRatio * 100 * math.cos(math.radians(angles[j]))))
+            avatarCenter = (int(x - window._globalRatio * 75 * math.sin(math.radians(angles[j] + 180))),
+                            int(y - window._globalRatio * 75 * math.cos(math.radians(angles[j] + 180))))
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(img, (avatarCenter[0] - img.width // 2,
@@ -354,12 +357,12 @@ class GameData:
 
                 img = common.extRoundImage(img, (255, 255, 255, 255))
 
-                size = (16, 16)
+                size = (int(factorSize * 16), int(factorSize * 16))
                 img = img.resize(size)
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
-                p = (avatarCenter[0] + 16,
-                     avatarCenter[1] + radius - window._globalRatio * 120 - 16)
+                p = (avatarCenter[0] + factorSize * 16,
+                     avatarCenter[1] - factorSize * 16)
                 image.paste(img, (int(p[0] - img.width // 2),
                                   int(p[1] - img.height // 2)))
                 tableImage = Image.alpha_composite(tableImage, image)
@@ -370,19 +373,19 @@ class GameData:
 
                 img = common.extRoundImage(img, (255, 255, 255, 255))
 
-                size = (16, 16)
+                size = (int(factorSize * 16), int(factorSize * 16))
                 img = img.resize(size)
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
-                p = (avatarCenter[0] + 16,
-                     avatarCenter[1] + radius - window._globalRatio * 50 + 16)
+                p = (avatarCenter[0] + factorSize * 16,
+                     avatarCenter[1] + factorSize * 16)
                 image.paste(img, (int(p[0] - img.width // 2),
                                   int(p[1] - img.height // 2)))
                 tableImage = Image.alpha_composite(tableImage, image)
 
             text = self._players[i]._name
             draw = ImageDraw.Draw(tableImage)
-            font = ImageFont.truetype("DejaVuSans-Bold.ttf", 14)
+            font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", 10)
             bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
             w = bbox[2] - bbox[0]
             h = int(1.5 * (bbox[3] - bbox[1]))
@@ -391,15 +394,15 @@ class GameData:
             draw.text((0, 0), text, font = font, fill = "white")
             textImage = textImage.resize((int(textImage.width * window._globalRatio),
                                           int(textImage.height * window._globalRatio)))
-            
+
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(textImage, (int(avatarCenter[0] - textImage.width / 2),
-                                    int(avatarCenter[1] + window._globalRatio * 70 - textImage.height / 2)))
+                                    int(avatarCenter[1] + window._globalRatio * 40 - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             text = str(self._players[i].points())
             draw = ImageDraw.Draw(tableImage)
-            font = ImageFont.truetype("DejaVuSans.ttf", 14)
+            font = ImageFont.truetype("fonts/DejaVuSans.ttf", 10)
             bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
             w = bbox[2] - bbox[0]
             h = int(1.5 * (bbox[3] - bbox[1]))
@@ -410,15 +413,15 @@ class GameData:
                                           int(textImage.height * window._globalRatio)))
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            p = (avatarCenter[0] - 16,
-                 avatarCenter[1] + radius - window._globalRatio * 120 + 16)
+            p = (avatarCenter[0] - factorSize * 16,
+                 avatarCenter[1] + factorSize * 16)
             image.paste(textImage, (int(p[0] - textImage.width // 2),
                                     int(p[1] - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
 
             text = "H" if self._players[i].isHuman() else "B" #Human or Bot
             draw = ImageDraw.Draw(tableImage)
-            font = ImageFont.truetype("DejaVuSans.ttf", 14)
+            font = ImageFont.truetype("fonts/DejaVuSans.ttf", 10)
             bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
             w = bbox[2] - bbox[0]
             h = int(1.5 * (bbox[3] - bbox[1]))
@@ -429,8 +432,8 @@ class GameData:
                                           int(textImage.height * window._globalRatio)))
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            p = (avatarCenter[0] - 16,
-                 avatarCenter[1] + radius - window._globalRatio * 120 - 16)
+            p = (avatarCenter[0] - factorSize * 16,
+                 avatarCenter[1] - factorSize * 16)
             image.paste(textImage, (int(p[0] - textImage.width // 2),
                                     int(p[1] - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)

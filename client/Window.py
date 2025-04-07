@@ -222,7 +222,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
                     port = random.randrange(1024, 49151)
             
             threading.Thread(target = self._localServer.start).start()
-            
+
             for i in range(1, self._playerNumber):
                 self._localClients.append(Client.Client(self, self._playerNumber, False, host, port))
         else:
