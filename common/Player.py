@@ -211,7 +211,7 @@ class Player:
             while (not window._ok):
                 time.sleep(0.01)
             
-            calledKing = Family({v: k for k, v in strFamilies.items()}.get(window._kingComboBox.text))
+            calledKing = Family.Family({v: k for k, v in strFamilies.items()}.get(window._kingComboBox.text))
             
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingLabel, 0))
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingComboBox, 0))
