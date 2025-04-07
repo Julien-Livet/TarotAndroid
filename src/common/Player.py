@@ -2,12 +2,16 @@ from common import Card
 from common import Contract
 from common import Family
 from common import common
+from functools import partial
+import kivy
 import os
 from PIL import Image
+import platform
 import random
+import time
 
 class Player:
-    def __init__(self):
+    def __init__(self, playerNumber, id):
         names = ["Paul", "Cathy", "Hector", "Samuel", "Nicolas", "Anne",
                  "Hermine", "Marie", "Joseph", "Marion", "Julien", "Olivier",
                  "Benjamin", "Claire", "François", "Laurence", "Louis",
@@ -38,8 +42,10 @@ class Player:
                  "Stéphane", "Kévin", "Yann", "Raphaël", "Loïc", "Anthony",
                  "Jimmy"]
 
+        self._playerNumber = playerNumber
+        self._id = id
         self._name = names[random.randrange(len(names))]
-        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
+        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png").resize((64, 64))
         self._connected = True
         self._idle = False
         self._folds = []
@@ -77,7 +83,7 @@ class Player:
     def teamKnown(self) -> bool:
         return self._teamKnown
 
-    def chooseContract(self, window, contract: Contract) -> Contract:
+    def chooseContract(self, window, contract: Contract.Contract) -> Contract.Contract:
         possibleContracts = []
 
         if (contract):
@@ -91,13 +97,23 @@ class Player:
 
         strContracts = {}
         strContracts[-1] = _("Pass")
-        
+
         for i in range(0, 4):
             strContracts[i] = str(Contract.Contract(i))
 
         choices = [strContracts[i] for i in possibleContracts]
 
         if (self._isHuman):
+            if (platform.system() != "Linux"):
+                try:
+                    import plyer
+
+                    plyer.vibrator.vibrate(0.5)
+                except ModuleNotFoundError:
+                    pass
+                except NotImplementedError:
+                    pass
+
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._contractLabel, 1))
             kivy.clock.Clock.schedule_once(partial(window.setSpinnerValues, window._contractComboBox, choices))
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._contractComboBox, 1))
@@ -105,7 +121,7 @@ class Player:
             
             while (not window._ok):
                 time.sleep(0.01)
-            
+
             contract = {v: k for k, v in strContracts.items()}.get(window._contractComboBox.text)
             
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._contractLabel, 0))
@@ -156,7 +172,7 @@ class Player:
                 if (cutCount == 0):
                     guessContract = Contract.Contract.Guard
                 else:
-                    if (points >= common.maximumPoints() // self._game._playerNumber):
+                    if (points >= common.maximumPoints() // self._playerNumber):
                         guessContract = Contract.Contract.GuardAgainst
                     else:
                         guessContract = Contract.Contract.GuardWithout
@@ -167,7 +183,7 @@ class Player:
             
             return guessContract
     
-    def callKing(self, window) -> Family:
+    def callKing(self, window) -> Family.Family:
         strFamilies = {}
         choices = []
         
@@ -178,6 +194,16 @@ class Player:
         calledKing = None
         
         if (self._isHuman):
+            if (platform.system() != "Linux"):
+                try:
+                    import plyer
+
+                    plyer.vibrator.vibrate(0.5)
+                except ModuleNotFoundError:
+                    pass
+                except NotImplementedError:
+                    pass
+
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingLabel, 1))
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingComboBox, 1))
             window._ok = False
@@ -185,7 +211,7 @@ class Player:
             while (not window._ok):
                 time.sleep(0.01)
             
-            calledKing = Family.Family({v: k for k, v in strFamilies.items()}.get(choices[gui._kingComboBox.currentIndex()]))
+            calledKing = Family({v: k for k, v in strFamilies.items()}.get(window._kingComboBox.text))
             
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingLabel, 0))
             kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._kingComboBox, 0))
@@ -225,18 +251,25 @@ class Player:
 
         return calledKing
     
-    def doDog(self, dog: list, window) -> list:
+    def doDog(self, window, dog: list) -> list:
         newDog = []
         
         self._cards += dog
         self._cards = common.sortCards(self._cards)
         
-        kivy.clock.Clock.schedule_once(partial(window.displayTable, [], False, True))
+        window.displayTable([], False, True)
 
-        for i in range(len(dog), 6):
-            kivy.clock.Clock.schedule_once(partial(window.removeSpinnerValues, window._dogComboBoxes[i]))
-                
         if (self._isHuman):
+            if (platform.system() != "Linux"):
+                try:
+                    import plyer
+
+                    plyer.vibrator.vibrate(0.5)
+                except ModuleNotFoundError:
+                    pass
+                except NotImplementedError:
+                    pass
+            
             comboBoxes = []
             
             strCards = {}
@@ -249,11 +282,12 @@ class Player:
                     strCards[i] = str(self._cards[i])
                     choices.append(str(self._cards[i]))
             
-            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._dogLabel, 1))
+            window._dogLabel.setVisible(True)
             
             for i in range(0, len(dog)):
-                kivy.clock.Clock.schedule_once(partial(window.setSpinnerValues, window._dogComboBoxes[i], choices))
-                kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._dogComboBoxes[i], 1))
+                window._dogComboBoxes[i].clear()
+                window._dogComboBoxes[i].addItems(choices)
+                window._dogComboBoxes[i].setVisible(True)
 
             loop = True
             
@@ -266,15 +300,15 @@ class Player:
                 selectedCards = []
                 
                 for i in range(0, len(dog)):
-                    selectedCards.append(window._dogComboBoxes[i].text)
+                    selectedCards.append(choices[window._dogComboBoxes[i].currentIndex()])
                 
                 loop = len(set(selectedCards)) != len(dog)
             
-            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._dogLabel, 0))
+            window._dogLabel.setVisible(False)
             
             for i in range(0, len(dog)):
-                kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._dogComboBoxes[i], 0))
-                          
+                window._dogComboBoxes[i].setVisible(False)
+
             d = {v: k for k, v in strCards.items()}
             
             for i in range(0, len(dog)):
@@ -409,14 +443,19 @@ class Player:
 
         return enabledCards
 
-    def playCard(self, window, players: list, cards: dict, firstRound: bool, calledKing: Family) -> Card:
-        time.sleep(1)
+    def playCard(self, window, players: list, cards: dict, game) -> Card.Card:
+        time.sleep(1.0)
 
         card = None
 
         cardList = [x[1] for x in cards.items()]
         
-        enabledCards = self.enabledCards(cardList, firstRound, calledKing)
+        calledKing = None
+        
+        if (game._calledKing):
+            calledKing = Family.Family(int(game._calledKing))
+
+        enabledCards = self.enabledCards(cardList, game._firstRound, calledKing)
         
         strCards = {}
         choices = []
@@ -426,25 +465,32 @@ class Player:
                 strCards[i] = self._cards[i].name()
                 choices.append(self._cards[i].name())
 
-        kivy.clock.Clock.schedule_once(partial(window.displayTable, cardList, True, False))
-        
-        import plyer
-        
-        plyer.vibrator.vibrate(0.5)
+        window.displayTable(cardList, True)
 
         if (self._isHuman):
-            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardLabel, 1))
-            kivy.clock.Clock.schedule_once(partial(window.setSpinnerValues, window._cardComboBox, choices))
-            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardComboBox, 1))
+            if (platform.system() != "Linux"):
+                try:
+                    import plyer
+
+                    plyer.vibrator.vibrate(0.5)
+                except ModuleNotFoundError:
+                    pass
+                except NotImplementedError:
+                    pass
+
+            window._cardLabel.setVisible(True)
+            window._cardComboBox.clear()
+            window._cardComboBox.addItems(choices)
+            window._cardComboBox.setVisible(True)
             window._ok = False
             
             while (not window._ok):
                 time.sleep(0.01)
             
-            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardLabel, 0))
-            kivy.clock.Clock.schedule_once(partial(window.setOpacity, window._cardComboBox, 0))
+            window._cardLabel.setVisible(False)
+            window._cardComboBox.setVisible(False)
             
-            selectedCard = {v: k for k, v in strCards.items()}.get(window._cardComboBox.text)
+            selectedCard = {v: k for k, v in strCards.items()}.get(choices[window._cardComboBox.currentIndex()])
 
             card = self._cards[selectedCard]
             del self._cards[selectedCard]
@@ -477,9 +523,9 @@ class Player:
             for k, v in handFamilies.items():
                 handFamilies[k] = sorted(handFamilies[k], key = lambda x: x.value(), reverse = True)
 
-            p, c = self._game.setWinner(cards)
+            p, c = common.setWinner(cards)
         
-            playedAssets, playedFamilies = self._game.playedCards()
+            playedAssets, playedFamilies = game.playedCards()
 
             order = players.index(self._id)
 
@@ -487,8 +533,8 @@ class Player:
 
             if (p == None):
                 if (self._attackTeam):
-                    if (self._game._taker == self._id):
-                        if (len(handAssets) and len(handAssets) >= 22 // self._game._playerNumber):
+                    if (game._taker == self._id):
+                        if (len(handAssets) and len(handAssets) >= 22 // self._playerNumber):
                             assetIndex = len(handAssets) - 1
                             
                             if (handAssets[assetIndex].value() == 0):
@@ -501,10 +547,10 @@ class Player:
                             
                             selectedCard = choices.index(handAssets[assetIndex].name())
                         else:
-                            if (self._game._calledKing
-                                and not playedFamilies[self._game._calledKing]
-                                and len(handFamilies[self._game._calledKing])):
-                                selectedCard = choices.index(handFamilies[self._game._calledKing][-1].name())
+                            if (calledKing
+                                and not playedFamilies[calledKing]
+                                and len(handFamilies[calledKing])):
+                                selectedCard = choices.index(handFamilies[calledKing][-1].name())
                             else:
                                 for k, v in families.items():
                                     bestCard = 15
@@ -515,15 +561,15 @@ class Player:
                                     if (len(families[k]) and families[k][-1] >= bestCard - 1):
                                         cut = False
                                         
-                                        for i in range(0, self._game._playerNumber):
-                                            if (self._game._players[i]._cuts[families[k]]):
+                                        for i in range(0, self._playerNumber):
+                                            if (game._players[i]._cuts[families[k]]):
                                                 cut = True
                                                 break
                                         
                                         if (not cut):
                                             selectedCard = choices.index(handFamilies[k][-1].name())
                     else:
-                        takerOrder = players.index(self._game._taker)
+                        takerOrder = players.index(game._taker)
                         
                         if (order < takerOrder):
                             if (len(assets)):
@@ -584,7 +630,7 @@ class Player:
                             except:
                                 pass
                 else:
-                    takerOrder = players.index(self._game._taker)
+                    takerOrder = players.index(game._taker)
                         
                     if (order < takerOrder):
                         familyIsPlayed = {Family.Family.Heart: False,
@@ -602,9 +648,9 @@ class Player:
                         for k, v in handFamilies.items():
                             if (not len(v)):
                                 emptyFamilies[k] = True
-
+                        
                         playedFamilies = dict(sorted(familyIsPlayed.items(), key = lambda item: item[1]))
-
+                        
                         if (list(emptyFamilies.values()).count(True) == 4):
                             index = 0
                                 
@@ -639,14 +685,14 @@ class Player:
                             else:
                                 selectedCard = choices.index(handFamilies[Family(random.randrange(4))][0].name())
             else:
-                if (self._game._players[p].teamKnown()):
+                if (game._players[p].teamKnown()):
                     if (c.isFamilyCard()):
                         bestCard = 15
 
                         if (len(playedFamilies[c.familyCard().family()])):
                             bestCard = playedFamilies[c.familyCard().family()][-1].value()
                     
-                        if (self._game._players[p].attackTeam()):
+                        if (game._players[p].attackTeam()):
                             if (self._attackTeam):
                                 if (choices[0].startswith("asset-")):
                                     selectedCard = -1
@@ -679,7 +725,7 @@ class Player:
                                 assetOneInCards = i
                                 break
                     
-                        if (self._game._players[p].attackTeam()):
+                        if (game._players[p].attackTeam()):
                             if (self._attackTeam):
                                 if (assets[-1].value() >= bestAsset - 1
                                     and assetOneIndex != -1):
@@ -713,7 +759,7 @@ class Player:
             if (selectedCard == -1 or selectedCard == len(choices) - 1):
                 points = 10
                 
-                for card in self._cards:
+                for card in reversed(self._cards):
                     if (card.name() in choices):
                         if (card.points() < points):
                             selectedCard = choices.index(card.name())

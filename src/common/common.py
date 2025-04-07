@@ -119,66 +119,6 @@ def sortCards(cards: list) -> list:
         
     return cards
 
-def sendDataMessage(socket, message, obj, closed):
-    send = True
-     
-    d = None
-    
-    while (not d):
-        if (closed):
-            return
-
-        try:
-            d = pickle.dumps(obj)
-        except OSError:
-            pass
-        except AttributeError:
-            pass
-        except ValueError:
-            pass
-        except SyntaxError:
-            pass
-            
-        if (not d):
-            print("dumps-fail")
-
-    while (send):     
-        if (closed):
-            return
-            
-        try:
-            socket.send(message + struct.pack('!i', len(d)))
-            socket.send(d)
-            send = False
-        except TimeoutError:
-            pass
-            
-        if (send):
-            print("send-fail")
-
-def receiveDataMessage(socket, data, message, closed):
-    if (not data.startswith(message)):
-        return (False, data, None)
-
-    size = struct.unpack('!i', data[len(message):len(message) + 4])[0]
-
-    data = data[len(message) + 4:]
-    
-    while (len(data) < size):
-        if (closed):
-            return
-    
-        try:
-            data += socket.recv(1024)
-        except TimeoutError:
-            pass
-
-    obj = pickle.loads(data[:size])
-
-    data = data[size:]
-
-    return (True, data, obj)    
-
 def extRoundImage(image, color = (0, 0, 0, 255)):
     radius = int(math.sqrt(image.width ** 2 + image.height ** 2))
     img = Image.new('RGBA', (radius, radius))
@@ -215,3 +155,40 @@ def intRoundImage(image, color = (0, 0, 0, 255)):
     img = Image.alpha_composite(img, i)    
 
     return img
+
+def setWinner(cards: dict):
+    if (len(cards) == 0):
+        return (None, None)
+        
+    assets = {}
+    families = {Family.Family.Heart: {},
+                Family.Family.Diamond: {},
+                Family.Family.Club: {},
+                Family.Family.Spade: {}}
+    for k, v in cards.items():
+        if v.isAsset():
+            assets[k] = v
+        else: #elif v.isFamilyCard():
+            families[v.familyCard().family()][k] = v
+    
+    if (len(assets)):
+        assets = dict(sorted(assets.items(), key = lambda item: item[1].value()))
+        
+        p, a = list(assets.items())[-1]
+        
+        if (a.value() > 0):
+            return (p, a)
+            
+    p, firstCard = list(cards.items())[0]
+    
+    if (firstCard.isAsset() and firstCard.asset().isFool()):
+        if (len(cards) > 1):
+            p, firstCard = list(cards.items())[1]
+        else:
+            return (p, firstCard)
+            
+    f = dict(sorted(families[firstCard.familyCard().family()].items(), key = lambda item: item[1].value()))
+    
+    p, c = list(f.items())[-1]
+    
+    return (p, c)

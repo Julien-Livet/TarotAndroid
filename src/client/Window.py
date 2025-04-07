@@ -11,6 +11,7 @@ import kivy.uix.boxlayout
 import kivy.uix.image
 import kivy.uix.button
 import kivy.uix.checkbox
+import kivy.uix.spinner
 import kivy.uix.textinput
 import math
 import os
@@ -53,6 +54,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self._localServer = None
         self._localClients = []
         self._timer = None
+        self._remainingTime = 15
 
         assert(0 < self._overCardRatio and self._overCardRatio <= 1)
 
@@ -114,14 +116,23 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         l = kivy.uix.boxlayout.BoxLayout(orientation = "horizontal")
         l.add_widget(self._localRadioButton)
         l.add_widget(kivy.uix.label.Label(text = _("Local"), halign = 'left', valign = 'middle'))
-        layout.add_widget(l)
-
-        l = kivy.uix.boxlayout.BoxLayout(orientation = "horizontal")
         l.add_widget(self._onlineRadioButton)
         l.add_widget(kivy.uix.label.Label(text = _("Online"), halign = 'left', valign = 'middle'))
         layout.add_widget(l)
 
         self.add_widget(layout)
+
+    def __del__(self):
+        if (self._client):
+            self._client.close()
+
+        for client in self._localClients:
+            client.close()
+
+        self._localClients = []
+
+        if (self._localServer):
+            self._localServer.close()
 
     def close(self):
         with open(iniFilename, 'w') as file:
@@ -129,14 +140,16 @@ class Window(kivy.uix.boxlayout.BoxLayout):
             file.write(self._avatarFilename + "\n")
             file.write(str(self._localRadioButton.active) + "\n")
 
-        if (self._localServer):
-            self._localServer.disconnect()
-            
-        for client in self._localClients:
-            client.disconnect()
-
         if (self._client):
-            self._client.disconnect()
+            self._client.close()
+
+        for client in self._localClients:
+            client.close()
+
+        self._localClients = []
+
+        if (self._localServer):
+            self._localServer.close()
 
     def setOpacity(self, widget, opacity, *largs):
         widget.opacity = opacity
@@ -186,33 +199,35 @@ class Window(kivy.uix.boxlayout.BoxLayout):
 
     def play(self):
         host = "localhost"
-        port = 12345
+        port = 18861
 
         if (self._localRadioButton.active):
             launched = False
+            
+            from rpyc.utils.server import ThreadedServer
         
             while (not launched):
                 try:
-                    self._localServer = Server.Server(port = port)
+                    self._localServer = ThreadedServer(Server.Service, port = port)
                     launched = True
+                except ConnectionRefusedError:
+                    port = random.randrange(1024, 49151)
                 except OSError:
                     port = random.randrange(1024, 49151)
             
-            threading.Thread(target = self._localServer.acceptConnections).start()
+            threading.Thread(target = self._localServer.start).start()
             
             for i in range(1, self._playerNumber):
                 self._localClients.append(Client.Client(self, self._playerNumber, False, host, port))
-                self._localClients[-1]._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
         else:
             #TODO: put a valid server address
-            host = ""
+            host = "192.168.0.39"
 
         self._globalRatio = 1.5 * kivy.core.window.Window.width / kivy.core.window.Window.height
             
-        self._cardSize = (int(56 * _globalRatio), int(109 * _globalRatio))
+        self._cardSize = (int(56 * self._globalRatio), int(109 * self._globalRatio))
 
         self._client = Client.Client(self, self._playerNumber, True, host, port)
-        self._client._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
 
         self.clear_widgets()
 
@@ -279,13 +294,13 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self.add_widget(layout)        
         self.add_widget(self._rightLayout)
 
-        kivy.clock.Clock.schedule_interval(self.monitor, 0)
+        kivy.clock.Clock.schedule_interval(self.monitor, 100)
 
     def ok(self, instance):
         self._ok = True
         
     def monitor(self, dt):
-        if (not self._client or not self._client._gameData):
+        if (self._client == None or self._client._gameData == None):
             return
 
         from common import Game
@@ -301,6 +316,8 @@ class Window(kivy.uix.boxlayout.BoxLayout):
             self.displayTable(gameData._dog, False, True)
         elif (gameState == Game.GameState.ShowDog):
             self.displayTable(gameData._dog, True)
+        elif (gameState == Game.GameState.Play and len(gameData._centerCards)):
+            self.displayTable(gameData._centerCards, True, False)
         elif (gameState == Game.GameState.DoDog):
             self.displayTable([], False, True)
         

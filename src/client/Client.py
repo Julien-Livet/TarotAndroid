@@ -1,96 +1,112 @@
 from common import Game
 from common import common
-import socket
-import struct
+import pickle
+import rpyc
 import threading
 
+@rpyc.service
+class Service(rpyc.Service):
+    def __init__(self, client):
+        super().__init__()
+        self._client = client
+
+    def on_connect(self, conn):
+        conn._config["allow_pickle"] = True
+        
+    def on_disconnect(self, conn):
+        pass
+
+    def getGameData(self):
+        data = self._client._conn.root.gameData()
+        
+        self._client._gameData = pickle.loads(data)
+        
+        return self._client._gameData
+
+    @rpyc.exposed
+    def chooseContract(self):
+        self.getGameData()
+
+        return self._client._gameData._players[self._client._gameData._currentPlayer].chooseContract(self._client._window, self._client._gameData._contract)
+
+    @rpyc.exposed
+    def callKing(self):
+        self.getGameData()
+
+        return self._client._gameData._players[self._client._gameData._taker].callKing(self._client._window)
+
+    @rpyc.exposed
+    def doDog(self, data):
+        dog = pickle.loads(data)
+    
+        self.getGameData()
+
+        dog = self._client._gameData._players[self._client._gameData._taker].doDog(self._client._window, dog)
+
+        return pickle.dumps((self._client._gameData._players[self._client._gameData._taker], dog))
+
+    @rpyc.exposed
+    def playCard(self, data):
+        self.getGameData()
+
+        players, cards = pickle.loads(data)
+        card = self._client._gameData._players[self._client._gameData._currentPlayer].playCard(self._client._window, players, cards, self._client._gameData)
+
+        return pickle.dumps((self._client._gameData._players[self._client._gameData._currentPlayer], card))
+
+    @rpyc.exposed
+    def setId(self, id):
+        self.getGameData()
+        
+        self._client._id = id
+
+        name = self._client._gameData._players[self._client._id]._name
+        avatar = self._client._gameData._players[self._client._id]._avatar
+
+        if (self._client._isHuman):
+            name = self._client._window._lineEdit.text
+            avatar = self._client._window._avatar
+
+        info = (self._client._isHuman, name, avatar)
+
+        self._client._conn.root.connect(pickle.dumps(info))
+        
+        self.getGameData()
+
 class Client:
-    def __init__(self, gui, playerNumber, isHuman = True, host = 'localhost', port = 12345):
+    def __init__(self, window, playerNumber, isHuman = True, host = 'localhost', port = 12345):
         assert(3 <= playerNumber and playerNumber <= 5)
 
-        self._gui = gui
-        self._closed = True
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socket.connect((host, port))
-        self._closed = False
-        #self._socket.settimeout(1)
-        self._gameData = None
+        self._window = window
+        self._conn = rpyc.connect(host, port, service = Service(self))
         self._playerNumber = playerNumber
         self._id = None
         self._isHuman = isHuman
-        
-        threading.Thread(target = self.receiveData).start()
+        self._roomId = self._conn.root.join_room(self._playerNumber)
+        self._gameData = None
 
-    def __del__(self):
-        self.disconnect()
- 
-    def disconnect(self):
-        if (not self._closed):
-            self._socket.send(b"disconnect")
-        
-        self._closed = True
-        
-        if (not self._closed):
-            self._socket.close()
-        
-    def receiveData(self):
-        data = b""
+        threading.Thread(target = self.update).start()
 
-        while (not self._closed):
+    def close(self):
+        if (self._conn and not self._conn.closed):
+            self._conn.close()
+
+    def update(self):
+        import time
+    
+        while (not self._conn.closed):
+            time.sleep(0.1)
+        
             try:
-                data += self._socket.recv(1024)
+                data = self._conn.root.gameData()
+                self._gameData = pickle.loads(data)
+                self._window._remainingTime = self._gameData._remainingTime
+            except EOFError:
+                pass
             except TimeoutError:
                 pass
-            
-            if (data):
-                print("client-data", data[:16])
+            except OSError:
+                pass
                 
-                if (data.startswith(b"game-")):
-                    print("client-game")
-                    ok, data, obj = common.receiveDataMessage(self._socket, data, b"game-", self._closed)
-
-                    self._gameData = obj
-
-                    if (self._id):
-                        self._gameData._players[self._id]._name = self._gui._lineEdit.text
-                        self._gameData._players[self._id]._avatar = self._gui._avatar
-                        self._gameData._players[self._id]._isHuman = self._isHuman
-                elif (data.startswith(b"connect-")):
-                    print("client-connect")
-                    self._id = size = struct.unpack('!i', data[len(b"connect-"):len(b"connect-") + 4])[0]
-
-                    self._gameData._players[self._id]._name = self._gui._lineEdit.text
-                    self._gameData._players[self._id]._avatar = self._gui._avatar
-                    self._gameData._players[self._id]._isHuman = self._isHuman
-
-                    common.sendDataMessage(self._socket, b"game-", self._gameData, self._closed)
-
-                    data = data[len(b"connect-") + 4:]
-                elif (data.startswith(b"chooseContract")):
-                    print("client-chooseContract")
-                    if (self._id):
-                        print("ok1", self._gameData._players[self._id].isHuman())
-                        contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
-
-                        common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed)
-                        print("ok2")
-                        data = data[len(b"chooseContract"):]
-                elif (data.startswith(b"callKing")):
-                    print("client-callKing")
-                    calledKing = self._gameData._players[self._id].callKing(self._gui)
-
-                    common.sendDataMessage(self._socket, b"calledKing-", calledKing, self._closed)
-
-                    data = data[len(b"callKing"):]
-                elif (data.startswith(b"doDog")):
-                    print("client-doDog")
-                    #TODO: ...
-
-                    data = data[len(b"doDog"):]
-                elif (data.startswith(b"play")):
-                    print("client-play")
-                    #TODO: ...
-
-                    data = data[len(b"play"):]
-                else:
-                    print("client", data[:16])
+            if (self._gameData._gameState == Game.GameState.End):
+                self._conn.close()

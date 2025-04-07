@@ -140,7 +140,7 @@ class GameData:
         random.shuffle(self._cards)
         assert(len(self._cards) == 78)
         
-        self._players = [Player.Player() for i in range(0, self._playerNumber)]
+        self._players = [Player.Player(self._playerNumber, i) for i in range(0, self._playerNumber)]
         
         n = 78 // 3 // self._playerNumber
         
@@ -165,43 +165,6 @@ class GameData:
             if (len(assets) == 1 and assets[0].value() == 1):
                 self.giveHands()
 
-    def setWinner(self, cards: dict):
-        if (len(cards) == 0):
-            return (None, None)
-            
-        assets = {}
-        families = {Family.Family.Heart: {},
-                    Family.Family.Diamond: {},
-                    Family.Family.Club: {},
-                    Family.Family.Spade: {}}
-        for k, v in cards.items():
-            if v.isAsset():
-                assets[k] = v
-            else: #elif v.isFamilyCard():
-                families[v.familyCard().family()][k] = v
-        
-        if (len(assets)):
-            assets = dict(sorted(assets.items(), key = lambda item: item[1].value()))
-            
-            p, a = list(assets.items())[-1]
-            
-            if (a.value() > 0):
-                return (p, a)
-                
-        p, firstCard = list(cards.items())[0]
-        
-        if (firstCard.isAsset() and firstCard.asset().isFool()):
-            if (len(cards) > 1):
-                p, firstCard = list(cards.items())[1]
-            else:
-                return (p, firstCard)
-                
-        f = dict(sorted(families[firstCard.familyCard().family()].items(), key = lambda item: item[1].value()))
-        
-        p, c = list(f.items())[-1]
-        
-        return (p, c)
-    
     def playSet(self, cards: dict, lastSet: bool):
         assets = {}
         families = {Family.Family.Heart: {},
@@ -300,7 +263,7 @@ class GameData:
     def defenceWins(self):
         return not self.attackWins()
 
-    def tableImage(self, gui, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False, bottomPlayer: int = 0):
+    def tableImage(self, window, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False, bottomPlayer: int = 0):
         assert(len(showPlayers) == self._playerNumber)
 
         tableImage = Image.new('RGBA',
@@ -358,12 +321,12 @@ class GameData:
 
             if (not img):
                 img = Image.new('RGBA', size)
-            
+
             img = img.resize(size)
             img = img.rotate(angles[j], expand = True)
 
-            avatarCenter = (int(x - gui._globalRatio * 100 * math.sin(math.radians(angles[j]))),
-                            int(y - gui._globalRatio * 100 * math.cos(math.radians(angles[j]))))
+            avatarCenter = (int(x - window._globalRatio * 100 * math.sin(math.radians(angles[j]))),
+                            int(y - window._globalRatio * 100 * math.cos(math.radians(angles[j]))))
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(img, (avatarCenter[0] - img.width // 2,
@@ -371,14 +334,14 @@ class GameData:
             tableImage = Image.alpha_composite(tableImage, image)
             
             if (i == self._currentPlayer):
-                draw = ImageDraw.Draw(image)
-                draw.arc((avatarCenter[0] - img.width // 2,
-                          avatarCenter[1] - img.height // 2,
-                          avatarCenter[0] + img.width // 2,
-                          avatarCenter[1] + img.height // 2),
-                          start = -self._remainingTime / 30 * 360 + -90,
-                          end = -90,
-                          fill = "green", width = 2)
+                draw = ImageDraw.Draw(tableImage)
+                draw.arc((avatarCenter[0] - size[0] * 1.1 // 2,
+                          avatarCenter[1] - size[1] * 1.1 // 2,
+                          avatarCenter[0] + size[0] * 1.1 // 2,
+                          avatarCenter[1] + size[1] * 1.1 // 2),
+                          start = -window._remainingTime / 15.0 * 360.0 + -90.0,
+                          end = -90.0,
+                          fill = "green", width = 3)
 
             if (self._players[i].teamKnown()):
                 img = Image.open(os.path.dirname(__file__) + "/../../images/shield.png")
@@ -396,7 +359,7 @@ class GameData:
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
                 p = (avatarCenter[0] + 16,
-                     avatarCenter[1] + radius - gui._globalRatio * 120 - 16)
+                     avatarCenter[1] + radius - window._globalRatio * 120 - 16)
                 image.paste(img, (int(p[0] - img.width // 2),
                                   int(p[1] - img.height // 2)))
                 tableImage = Image.alpha_composite(tableImage, image)
@@ -412,7 +375,7 @@ class GameData:
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
                 p = (avatarCenter[0] + 16,
-                     avatarCenter[1] + radius - gui._globalRatio * 120 + 16)
+                     avatarCenter[1] + radius - window._globalRatio * 120 + 16)
                 image.paste(img, (int(p[0] - img.width // 2),
                                   int(p[1] - img.height // 2)))
                 tableImage = Image.alpha_composite(tableImage, image)
@@ -426,12 +389,12 @@ class GameData:
             textImage = Image.new('RGBA', (w, h))
             draw = ImageDraw.Draw(textImage)
             draw.text((0, 0), text, font = font, fill = "white")
-            textImage = textImage.resize((int(textImage.width * gui._globalRatio),
-                                          int(textImage.height * gui._globalRatio)))
+            textImage = textImage.resize((int(textImage.width * window._globalRatio),
+                                          int(textImage.height * window._globalRatio)))
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(textImage, (int(avatarCenter[0] - textImage.width / 2),
-                                    int(avatarCenter[1] + gui._globalRatio * 50 - textImage.height / 2)))
+                                    int(avatarCenter[1] + window._globalRatio * 50 - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             text = str(self._players[i].points())
@@ -443,12 +406,12 @@ class GameData:
             textImage = Image.new('RGBA', (w, h))
             draw = ImageDraw.Draw(textImage)
             draw.text((0, 0), text, font = font, fill = "white")
-            textImage = textImage.resize((int(textImage.width * gui._globalRatio),
-                                          int(textImage.height * gui._globalRatio)))
+            textImage = textImage.resize((int(textImage.width * window._globalRatio),
+                                          int(textImage.height * window._globalRatio)))
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             p = (avatarCenter[0] - 16,
-                 avatarCenter[1] + radius - gui._globalRatio * 120 + 16)
+                 avatarCenter[1] + radius - window._globalRatio * 120 + 16)
             image.paste(textImage, (int(p[0] - textImage.width // 2),
                                     int(p[1] - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
@@ -462,12 +425,12 @@ class GameData:
             textImage = Image.new('RGBA', (w, h))
             draw = ImageDraw.Draw(textImage)
             draw.text((0, 0), text, font = font, fill = "white")
-            textImage = textImage.resize((int(textImage.width * gui._globalRatio),
-                                          int(textImage.height * gui._globalRatio)))
+            textImage = textImage.resize((int(textImage.width * window._globalRatio),
+                                          int(textImage.height * window._globalRatio)))
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             p = (avatarCenter[0] - 16,
-                 avatarCenter[1] + radius - gui._globalRatio * 120 - 16)
+                 avatarCenter[1] + radius - window._globalRatio * 120 - 16)
             image.paste(textImage, (int(p[0] - textImage.width // 2),
                                     int(p[1] - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
@@ -497,7 +460,7 @@ class GameData:
         return (assets, families)
 
 class Game(GameData):
-    def __init__(self, server: Server.Server, playerNumber: int = 5):
+    def __init__(self, server: Server.Service, playerNumber: int = 5):
         super().__init__(playerNumber)
         self._server = server
 
