@@ -324,7 +324,6 @@ class GameData:
                 img = Image.new('RGBA', size)
 
             img = img.resize(size)
-            img = img.rotate(angles[j], expand = True)
 
             avatarCenter = (int(x - window._globalRatio * 100 * math.sin(math.radians(angles[j]))),
                             int(y - window._globalRatio * 100 * math.cos(math.radians(angles[j]))))
@@ -376,7 +375,7 @@ class GameData:
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
                 p = (avatarCenter[0] + 16,
-                     avatarCenter[1] + radius - window._globalRatio * 120 + 16)
+                     avatarCenter[1] + radius - window._globalRatio * 50 + 16)
                 image.paste(img, (int(p[0] - img.width // 2),
                                   int(p[1] - img.height // 2)))
                 tableImage = Image.alpha_composite(tableImage, image)
@@ -395,7 +394,7 @@ class GameData:
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(textImage, (int(avatarCenter[0] - textImage.width / 2),
-                                    int(avatarCenter[1] + window._globalRatio * 50 - textImage.height / 2)))
+                                    int(avatarCenter[1] + window._globalRatio * 70 - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             text = str(self._players[i].points())

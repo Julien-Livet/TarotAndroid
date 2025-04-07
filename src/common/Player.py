@@ -465,7 +465,7 @@ class Player:
                 strCards[i] = self._cards[i].name()
                 choices.append(self._cards[i].name())
 
-        window.displayTable(cardList, True)
+        window.displayTable(cardList, True, False)
 
         if (self._isHuman):
             if (platform.system() != "Linux"):

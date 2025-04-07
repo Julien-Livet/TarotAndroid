@@ -176,7 +176,7 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self.play()
 
     def displayTable(self, centerCards: list, displayCenterCards: bool, centerCardsIsDog: bool, *largs):
-        if (not self._client or not self._client._id):
+        if (self._client == None or self._client._id == None):
             return
 
         img = self._client._gameData.tableImage(self,
