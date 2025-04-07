@@ -45,7 +45,7 @@ class Player:
         self._playerNumber = playerNumber
         self._id = id
         self._name = names[random.randrange(len(names))]
-        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png").resize((64, 64))
+        self._avatar = Image.open(os.path.dirname(__file__) + "/../images/avatar.png").resize((64, 64))
         self._connected = True
         self._idle = False
         self._folds = []

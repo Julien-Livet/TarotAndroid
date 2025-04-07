@@ -344,13 +344,13 @@ class GameData:
                           fill = "green", width = 3)
 
             if (self._players[i].teamKnown()):
-                img = Image.open(os.path.dirname(__file__) + "/../../images/shield.png")
+                img = Image.open(os.path.dirname(__file__) + "/../images/shield.png")
 
                 if (self._players[i].attackTeam()):
                     if (i == self._taker):
-                        img = Image.open(os.path.dirname(__file__) + "/../../images/swords.png")
+                        img = Image.open(os.path.dirname(__file__) + "/../images/swords.png")
                     else:
-                        img = Image.open(os.path.dirname(__file__) + "/../../images/sword.png")
+                        img = Image.open(os.path.dirname(__file__) + "/../images/sword.png")
 
                 img = common.extRoundImage(img, (255, 255, 255, 255))
 
@@ -365,7 +365,7 @@ class GameData:
                 tableImage = Image.alpha_composite(tableImage, image)
 
             if (i == self._taker and self._calledKing):
-                img = Image.open(os.path.dirname(__file__) + "/../../images/"
+                img = Image.open(os.path.dirname(__file__) + "/../images/"
                                  + self._calledKing.imageName() + ".png")
 
                 img = common.extRoundImage(img, (255, 255, 255, 255))

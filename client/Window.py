@@ -23,7 +23,7 @@ from server import Server
 import struct
 import threading
 
-iniFilename = os.path.dirname(__file__) + "/../../Tarot.ini"
+iniFilename = os.path.dirname(__file__) + "/../Tarot.ini"
 
 class MyTextInput(kivy.uix.textinput.TextInput):
     max_characters = 8
@@ -50,8 +50,8 @@ class Window(kivy.uix.boxlayout.BoxLayout):
         self._cardSize = (0, 0)
         self._overCardRatio = 1 / 3
         self._client = None
-        self._avatarFilename = os.path.dirname(__file__) + "/../../images/avatar.png"
-        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
+        self._avatarFilename = os.path.dirname(__file__) + "/../images/avatar.png"
+        self._avatar = Image.open(os.path.dirname(__file__) + "/../images/avatar.png")
         self._localServer = None
         self._localClients = []
         self._timer = None

@@ -60,7 +60,7 @@ def imageForCards(cards: list, enabledCards: list, cardSize: tuple, overCardRati
     if (shown):
         firstImage = cards[0].image(cardSize)
     else:
-        firstImage = Image.open(os.path.dirname(__file__) + "/../../images/back.png")
+        firstImage = Image.open(os.path.dirname(__file__) + "/../images/back.png")
         
         firstImage = firstImage.resize(cardSize)
 
