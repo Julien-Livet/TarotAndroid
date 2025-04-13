@@ -586,12 +586,12 @@ class Game(GameData):
                                         
                         if (cards[p].isAsset()):      
                             if (firstCard and firstCard.isFamilyCard()
-                                and int(firstCard.familyCard().family()) == self._calledKing)):
+                                and int(firstCard.familyCard().family()) == int(self._calledKing)):
                                 self._players[p]._attackTeam = False
                                 self._players[p]._teamKnown = True
                         elif (cards[p].isFamilyCard()):
                             if (firstCard and firstCard.isFamilyCard()
-                                and int(firstCard.familyCard().family()) == self._calledKing):
+                                and int(firstCard.familyCard().family()) == int(self._calledKing)):
                                 self._players[p]._attackTeam = False
                                 self._players[p]._teamKnown = True
 
