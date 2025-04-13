@@ -337,10 +337,10 @@ class GameData:
             
             if (i == self._currentPlayer):
                 draw = ImageDraw.Draw(tableImage)
-                draw.arc((avatarCenter[0] - size[0] * 1.1 // 2,
-                          avatarCenter[1] - size[1] * 1.1 // 2,
-                          avatarCenter[0] + size[0] * 1.1 // 2,
-                          avatarCenter[1] + size[1] * 1.1 // 2),
+                draw.arc((int(avatarCenter[0]) - size[0] * 1.1 // 2,
+                          int(avatarCenter[1]) - size[1] * 1.1 // 2,
+                          int(avatarCenter[0]) + size[0] * 1.1 // 2,
+                          int(avatarCenter[1]) + size[1] * 1.1 // 2),
                           start = -window._remainingTime / 15.0 * 360.0 + -90.0,
                           end = -90.0,
                           fill = "green", width = 4 * factorSize)
